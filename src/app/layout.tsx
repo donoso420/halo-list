@@ -14,8 +14,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Focus List",
-  description: "A calm, fast to-do list built with Next.js.",
+  title: "Halo List",
+  description: "A calm, dedicated Bible-reading to-do list.",
 };
 
 export default function RootLayout({

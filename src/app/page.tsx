@@ -323,12 +323,12 @@ export default function Home() {
         <div className="pointer-events-none absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-[#f0e1c8] opacity-40 blur-3xl" />
         <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 md:px-10">
           <header className="flex flex-col gap-4">
-            <p className="font-mono text-xs uppercase tracking-[0.45em] text-[#8b6a3d]">
+            <h1 className="text-6xl font-semibold leading-tight text-[#2f3b52] md:text-7xl">
               Halo List
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
-              Read gently. Finish faithfully.
             </h1>
+            <p className="max-w-2xl text-xs uppercase tracking-[0.45em] text-[#8b6a3d] md:text-sm">
+              Read gently. Finish faithfully.
+            </p>
             <p className="max-w-2xl text-base text-[#5a534b] md:text-lg">
               A calm, dedicated space for your Bible-reading plan. Everything
               saves locally in your browser.
