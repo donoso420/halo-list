@@ -2,15 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Filter = "all" | "active" | "done";
-
-type TodoItem = {
-  id: string;
-  title: string;
-  completed: boolean;
-  createdAt: number;
-};
-
 type BibleBook = {
   name: string;
   chapters: number;
@@ -19,55 +10,98 @@ type BibleBook = {
 
 type ChapterProgress = Record<string, number[]>;
 
-const getFilteredItems = (items: TodoItem[], filter: Filter) => {
-  if (filter === "active") {
-    return items.filter((item) => !item.completed);
-  }
-  if (filter === "done") {
-    return items.filter((item) => item.completed);
-  }
-  return items;
+type TranslationOption = {
+  id: string;
+  label: string;
+  disabled?: boolean;
 };
 
-const reorderWithinFilter = (
-  items: TodoItem[],
-  filter: Filter,
-  sourceId: string,
-  targetId: string
-) => {
-  const visible = getFilteredItems(items, filter);
-  const sourceIndex = visible.findIndex((item) => item.id === sourceId);
-  const targetIndex = visible.findIndex((item) => item.id === targetId);
+type Verse = {
+  verse: number;
+  text: string;
+};
 
-  if (sourceIndex === -1 || targetIndex === -1) {
-    return items;
+type ChapterCacheEntry = {
+  status: "idle" | "loading" | "success" | "error";
+  verses?: Verse[];
+  text?: string;
+  reference?: string;
+  copyright?: string;
+  error?: string;
+};
+
+type PlanItem = {
+  book: string;
+  chapter: number;
+};
+
+const parseVersesFromText = (text: string): Verse[] => {
+  const cleaned = text.replace(/\r/g, "").trim();
+  if (!cleaned) {
+    return [];
   }
 
-  const nextVisible = [...visible];
-  const [moved] = nextVisible.splice(sourceIndex, 1);
-  nextVisible.splice(targetIndex, 0, moved);
-
-  if (filter === "all") {
-    return nextVisible;
+  const matches = [...cleaned.matchAll(/(^|\n)\s*(\d+)\s+/g)];
+  if (matches.length === 0) {
+    return [];
   }
 
-  const visibleSet = new Set(nextVisible.map((item) => item.id));
-  const queue = [...nextVisible];
-  return items.map((item) => {
-    if (!visibleSet.has(item.id)) {
-      return item;
+  const verses: Verse[] = [];
+  for (let i = 0; i < matches.length; i += 1) {
+    const match = matches[i];
+    const next = matches[i + 1];
+    const verseNumber = Number(match[2]);
+    const start = (match.index ?? 0) + match[0].length;
+    const end = next?.index ?? cleaned.length;
+    const verseText = cleaned
+      .slice(start, end)
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (verseText) {
+      verses.push({ verse: verseNumber, text: verseText });
     }
-    return queue.shift() ?? item;
-  });
+  }
+
+  return verses;
 };
 
-const STORAGE_KEY = "focus-list.items.v1";
-const CHAPTERS_KEY = "focus-list.chapters.v1";
+const pickPreferredVoice = (list: SpeechSynthesisVoice[]) => {
+  if (list.length === 0) {
+    return undefined;
+  }
 
-const filters: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "active", label: "Active" },
-  { id: "done", label: "Done" },
+  const preferred = [
+    "Samantha",
+    "Ava",
+    "Karen",
+    "Moira",
+    "Google US English",
+    "Google UK English Female",
+    "Microsoft Zira",
+  ];
+
+  for (const name of preferred) {
+    const match = list.find((voice) =>
+      voice.name.toLowerCase().includes(name.toLowerCase())
+    );
+    if (match) {
+      return match;
+    }
+  }
+
+  return list.find((voice) => voice.lang.startsWith("en")) || list[0];
+};
+
+const CHAPTERS_KEY = "focus-list.chapters.v1";
+const DAILY_GOAL_KEY = "focus-list.daily-goal.v1";
+
+const translations: TranslationOption[] = [
+  { id: "kjv", label: "King James Version (KJV)" },
+  { id: "esv", label: "English Standard Version (ESV)" },
+  { id: "asv", label: "American Standard Version (ASV)" },
+  { id: "web", label: "World English Bible (WEB)" },
+  { id: "bbe", label: "Bible in Basic English (BBE)" },
 ];
 
 const bibleBooks: BibleBook[] = [
@@ -140,31 +174,24 @@ const bibleBooks: BibleBook[] = [
 ];
 
 export default function Home() {
-  const [items, setItems] = useState<TodoItem[]>([]);
-  const [input, setInput] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [chapterProgress, setChapterProgress] = useState<ChapterProgress>({});
-
-  useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw) as TodoItem[];
-      if (Array.isArray(parsed)) {
-        setItems(parsed);
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+  const [translation, setTranslation] = useState<string>("kjv");
+  const [dailyGoal, setDailyGoal] = useState<number>(2);
+  const [selectedChapter, setSelectedChapter] = useState<{
+    book: string;
+    chapter: number;
+  } | null>(null);
+  const [chapterCache, setChapterCache] = useState<
+    Record<string, ChapterCacheEntry>
+  >({});
+  const [openBook, setOpenBook] = useState<string | null>(null);
+  const [ttsSupported, setTtsSupported] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>("");
+  const [speechRate, setSpeechRate] = useState(1);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [bookQuery, setBookQuery] = useState("");
 
   useEffect(() => {
     const raw = localStorage.getItem(CHAPTERS_KEY);
@@ -182,19 +209,23 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const raw = localStorage.getItem(DAILY_GOAL_KEY);
+    if (!raw) {
+      return;
+    }
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setDailyGoal(Math.min(Math.max(parsed, 1), 6));
+    }
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapterProgress));
   }, [chapterProgress]);
 
-  const stats = useMemo(() => {
-    const total = items.length;
-    const completed = items.filter((item) => item.completed).length;
-    const active = total - completed;
-    return { total, completed, active };
-  }, [items]);
-
-  const visibleItems = useMemo(() => {
-    return getFilteredItems(items, filter);
-  }, [items, filter]);
+  useEffect(() => {
+    localStorage.setItem(DAILY_GOAL_KEY, String(dailyGoal));
+  }, [dailyGoal]);
 
   const chapterNumbers = useMemo(() => {
     const map: Record<string, number[]> = {};
@@ -202,6 +233,16 @@ export default function Home() {
       map[book.name] = Array.from({ length: book.chapters }, (_, i) => i + 1);
     }
     return map;
+  }, []);
+
+  const chapterOrder = useMemo<PlanItem[]>(() => {
+    const list: PlanItem[] = [];
+    for (const book of bibleBooks) {
+      for (let chapter = 1; chapter <= book.chapters; chapter += 1) {
+        list.push({ book: book.name, chapter });
+      }
+    }
+    return list;
   }, []);
 
   const oldTestament = useMemo(
@@ -232,35 +273,198 @@ export default function Home() {
     return { total, completed };
   }, [chapterSets]);
 
-  const addItem = () => {
-    const title = input.trim();
-    if (!title) {
+  const chapterPercent = useMemo(() => {
+    if (!chapterStats.total) {
+      return 0;
+    }
+    return Math.round((chapterStats.completed / chapterStats.total) * 100);
+  }, [chapterStats]);
+
+  const unreadChapters = useMemo(() => {
+    return chapterOrder.filter(
+      (item) => !chapterSets[item.book]?.has(item.chapter)
+    );
+  }, [chapterOrder, chapterSets]);
+
+  const planGoal = Math.max(1, Math.min(dailyGoal, 6));
+
+  const planChapters = useMemo(
+    () => unreadChapters.slice(0, planGoal),
+    [unreadChapters, planGoal]
+  );
+
+  const normalizedQuery = bookQuery.trim().toLowerCase();
+  const filteredOldTestament = useMemo(() => {
+    if (!normalizedQuery) {
+      return oldTestament;
+    }
+    return oldTestament.filter((book) =>
+      book.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [oldTestament, normalizedQuery]);
+
+  const filteredNewTestament = useMemo(() => {
+    if (!normalizedQuery) {
+      return newTestament;
+    }
+    return newTestament.filter((book) =>
+      book.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [newTestament, normalizedQuery]);
+
+  const selectedKey = useMemo(() => {
+    if (!selectedChapter) {
+      return null;
+    }
+    return `${translation}:${selectedChapter.book}:${selectedChapter.chapter}`;
+  }, [selectedChapter, translation]);
+
+  const selectedEntry = useMemo(() => {
+    if (!selectedKey) {
+      return undefined;
+    }
+    return chapterCache[selectedKey];
+  }, [chapterCache, selectedKey]);
+
+  const displayedVerses = useMemo(() => {
+    if (selectedEntry?.verses && selectedEntry.verses.length > 0) {
+      return selectedEntry.verses;
+    }
+    if (selectedEntry?.text) {
+      const parsed = parseVersesFromText(selectedEntry.text);
+      if (parsed.length > 0) {
+        return parsed;
+      }
+    }
+    return [];
+  }, [selectedEntry]);
+
+  const hasSelectedText = Boolean(
+    selectedEntry?.text && selectedEntry.text.trim().length > 0
+  );
+  const hasDisplayedVerses = displayedVerses.length > 0;
+
+  const canSpeak =
+    selectedEntry?.status === "success" &&
+    (hasSelectedText || hasDisplayedVerses);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
       return;
     }
-    const newItem: TodoItem = {
-      id: crypto.randomUUID(),
-      title,
-      completed: false,
-      createdAt: Date.now(),
+
+    const synth = window.speechSynthesis;
+    if (!synth) {
+      setTtsSupported(false);
+      return;
+    }
+
+    setTtsSupported(true);
+
+    const loadVoices = () => {
+      const list = synth.getVoices();
+      setVoices(list);
+      const preferred = pickPreferredVoice(list);
+      setSelectedVoice((prev) => prev || preferred?.voiceURI || "");
     };
-    setItems((prev) => [newItem, ...prev]);
-    setInput("");
-  };
 
-  const toggleItem = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
-    );
-  };
+    loadVoices();
+    synth.onvoiceschanged = loadVoices;
 
-  const deleteItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+    return () => {
+      synth.onvoiceschanged = null;
+    };
+  }, []);
 
-  const clearCompleted = () => {
-    setItems((prev) => prev.filter((item) => !item.completed));
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    if (synth?.speaking || synth?.paused) {
+      synth.cancel();
+    }
+    setIsSpeaking(false);
+    setIsPaused(false);
+  }, [selectedKey, translation]);
+
+  useEffect(() => {
+    if (!selectedChapter || !selectedKey) {
+      return;
+    }
+
+    if (selectedEntry?.status === "loading" || selectedEntry?.status === "success") {
+      return;
+    }
+
+    const loadChapter = async () => {
+      setChapterCache((prev) => ({
+        ...prev,
+        [selectedKey]: {
+          status: "loading",
+        },
+      }));
+
+      const ref = `${selectedChapter.book} ${selectedChapter.chapter}`;
+      const url = `/api/bible?ref=${encodeURIComponent(ref)}&translation=${translation}`;
+
+      try {
+        const response = await fetch(url);
+        const data = (await response.json()) as {
+          verses?: Verse[];
+          reference?: string;
+          text?: string;
+          copyright?: string;
+          error?: string;
+        };
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "Unable to load this chapter.");
+        }
+
+        const verses = Array.isArray(data.verses)
+          ? data.verses.map((verse) => ({
+              verse: verse.verse,
+              text: String(verse.text || "").trim(),
+            }))
+          : undefined;
+
+        const text =
+          typeof data.text === "string" && data.text.trim().length > 0
+            ? data.text.trim()
+            : undefined;
+
+        setChapterCache((prev) => ({
+          ...prev,
+          [selectedKey]: {
+            status: "success",
+            verses,
+            text,
+            reference:
+              data.reference || `${selectedChapter.book} ${selectedChapter.chapter}`,
+            copyright: data.copyright,
+          },
+        }));
+      } catch (error) {
+        setChapterCache((prev) => ({
+          ...prev,
+          [selectedKey]: {
+            status: "error",
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to load this chapter.",
+          },
+        }));
+      }
+    };
+
+    loadChapter();
+  }, [selectedChapter, selectedKey, translation]);
+
+  const openChapter = (book: string, chapter: number) => {
+    setSelectedChapter({ book, chapter });
+    setOpenBook(book);
   };
 
   const toggleChapter = (bookName: string, chapter: number) => {
@@ -279,38 +483,99 @@ export default function Home() {
     });
   };
 
-  const handleDragStart = (
-    event: React.DragEvent<HTMLButtonElement>,
-    id: string
-  ) => {
-    setDragId(id);
-    event.dataTransfer.setData("text/plain", id);
-    event.dataTransfer.effectAllowed = "move";
+  const markPlanRead = () => {
+    if (planChapters.length === 0) {
+      return;
+    }
+    setChapterProgress((prev) => {
+      const next: ChapterProgress = { ...prev };
+      for (const item of planChapters) {
+        const current = Array.isArray(next[item.book]) ? next[item.book] : [];
+        const set = new Set(current);
+        set.add(item.chapter);
+        next[item.book] = Array.from(set).sort((a, b) => a - b);
+      }
+      return next;
+    });
   };
 
-  const handleDragOver = (
-    event: React.DragEvent<HTMLLIElement>,
-    id: string
-  ) => {
-    event.preventDefault();
-    setDragOverId(id);
-    event.dataTransfer.dropEffect = "move";
-  };
-
-  const handleDrop = (
-    event: React.DragEvent<HTMLLIElement>,
-    targetId: string
-  ) => {
-    event.preventDefault();
-    const sourceId = dragId ?? event.dataTransfer.getData("text/plain");
-    setDragId(null);
-    setDragOverId(null);
-
-    if (!sourceId || sourceId === targetId) {
+  const startSpeech = () => {
+    if (!canSpeak || !selectedEntry) {
+      return;
+    }
+    if (typeof window === "undefined") {
       return;
     }
 
-    setItems((prev) => reorderWithinFilter(prev, filter, sourceId, targetId));
+    const synth = window.speechSynthesis;
+    if (!synth) {
+      return;
+    }
+
+    synth.cancel();
+
+    const text = hasDisplayedVerses
+      ? displayedVerses
+          .map((verse) => verse.text.replace(/\s+/g, " ").trim())
+          .join(" ")
+      : selectedEntry.text?.replace(/\s+/g, " ").trim() || "";
+
+    if (!text) {
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voice = voices.find((item) => item.voiceURI === selectedVoice);
+    if (voice) {
+      utterance.voice = voice;
+    }
+    utterance.rate = speechRate;
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setIsPaused(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setIsPaused(false);
+    };
+
+    setIsSpeaking(true);
+    setIsPaused(false);
+    synth.speak(utterance);
+  };
+
+  const pauseSpeech = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    if (synth?.speaking && !synth.paused) {
+      synth.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const resumeSpeech = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    if (synth?.paused) {
+      synth.resume();
+      setIsPaused(false);
+    }
+  };
+
+  const stopSpeech = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    if (synth?.speaking || synth?.paused) {
+      synth.cancel();
+    }
+    setIsSpeaking(false);
+    setIsPaused(false);
   };
 
   return (
@@ -335,155 +600,144 @@ export default function Home() {
             </p>
           </header>
 
-          <section className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[32px] bg-white/90 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
-              <div className="flex flex-col gap-4">
-                <label className="text-sm font-medium text-[#7a6b5a]">
-                  Add a reading
-                </label>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        addItem();
-                      }
-                    }}
-                    placeholder="e.g., Read Psalm 23, John 1:1–18..."
-                    className="h-12 w-full rounded-2xl border border-transparent bg-[#f1ece3] px-4 text-base outline-none transition focus:border-[#d6c3a6] focus:ring-2 focus:ring-[#eadcc8]"
-                  />
-                  <button
-                    type="button"
-                    onClick={addItem}
-                    className="h-12 shrink-0 rounded-2xl bg-[#2f3b52] px-5 text-sm font-semibold text-white shadow-[0_12px_25px_rgba(47,59,82,0.3)] transition hover:translate-y-[-1px] hover:bg-[#3b4a63]"
+          <section className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[28px] bg-white/90 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)] backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
+                Reading plan
+              </p>
+              <div className="mt-3 grid gap-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#2b241d]">
+                      Chapters per day
+                    </p>
+                    <p className="text-xs text-[#7a6b5a]">
+                      Keep it gentle and steady.
+                    </p>
+                  </div>
+                  <select
+                    value={planGoal}
+                    onChange={(event) =>
+                      setDailyGoal(Number(event.target.value))
+                    }
+                    className="rounded-xl border border-[#e1d6c6] bg-white px-3 py-2 text-xs font-semibold text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
                   >
-                    Add reading
-                  </button>
+                    {[1, 2, 3, 4, 5, 6].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-[#7a6b5a]">
-                  {filters.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setFilter(option.id)}
-                      className={`rounded-full px-4 py-1 transition ${
-                        filter === option.id
-                          ? "bg-[#2f3b52] text-white"
-                          : "bg-[#f1ece3] hover:bg-[#e7dfd3]"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-[#b39b7a]">
-                  Drag the handle to reorder.
-                </p>
-              </div>
 
-              <div className="mt-6 flex items-center justify-between text-sm text-[#7a6b5a]">
-                <span>
-                  {stats.active} to read · {stats.completed} finished
-                </span>
-                <button
-                  type="button"
-                  onClick={clearCompleted}
-                  className="font-medium text-[#2b241d] transition hover:text-[#8b6a3d]"
-                >
-                  Clear completed
-                </button>
-              </div>
-
-              <ul className="mt-6 space-y-3">
-                {visibleItems.length === 0 ? (
-                  <li className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/80 p-6 text-center text-sm text-[#8b6a3d]">
-                    Your list is blank. Add a reading to begin.
-                  </li>
-                ) : (
-                  visibleItems.map((item) => (
-                    <li
-                      key={item.id}
-                      onDragOver={(event) => handleDragOver(event, item.id)}
-                      onDrop={(event) => handleDrop(event, item.id)}
-                      onDragLeave={() => setDragOverId(null)}
-                      className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 shadow-sm transition ${
-                        dragOverId === item.id
-                          ? "border-[#b4894f] bg-[#f7f1e7]"
-                          : "border-[#e7dfd3] bg-white"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-4 py-3">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
+                    <span>Next up</span>
+                    <span>{unreadChapters.length} left</span>
+                  </div>
+                  {planChapters.length === 0 ? (
+                    <p className="mt-3 text-sm text-[#7a6b5a]">
+                      Every chapter is complete. Well done.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {planChapters.map((item) => (
+                          <button
+                            key={`${item.book}-${item.chapter}`}
+                            type="button"
+                            onClick={() => openChapter(item.book, item.chapter)}
+                            className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 text-xs font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+                          >
+                            {item.book} {item.chapter}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
                         <button
                           type="button"
-                          aria-label="Drag to reorder"
-                          draggable
-                          onDragStart={(event) =>
-                            handleDragStart(event, item.id)
+                          onClick={() =>
+                            openChapter(
+                              planChapters[0].book,
+                              planChapters[0].chapter
+                            )
                           }
-                          onDragEnd={() => {
-                            setDragId(null);
-                            setDragOverId(null);
-                          }}
-                          className="cursor-grab rounded-full border border-transparent px-2 py-1 text-xs font-mono text-[#b7a48a] transition hover:border-[#e7ddcd] active:cursor-grabbing"
+                          className="rounded-full border border-transparent bg-[#2f3b52] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
                         >
-                          ::
+                          Open first
                         </button>
-                        <label className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            onChange={() => toggleItem(item.id)}
-                            className="h-5 w-5 rounded border-[#cbb89a] text-[#2b241d] accent-[#b4894f]"
-                          />
-                          <span
-                            className={`text-sm font-medium ${
-                              item.completed
-                                ? "text-[#b7ad9f] line-through"
-                                : "text-[#2b241d]"
-                            }`}
-                          >
-                            {item.title}
-                          </span>
-                        </label>
+                        <button
+                          type="button"
+                          onClick={markPlanRead}
+                          className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 text-xs font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+                        >
+                          Mark plan read
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => deleteItem(item.id)}
-                        className="rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-[#8b6a3d] transition hover:border-[#e1d6c6] hover:text-[#2b241d]"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
+                      <p className="mt-3 text-xs text-[#7a6b5a]">
+                        Open a chapter and press Play to listen as you read.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
+                    Gentle path
+                  </p>
+                  <ul className="mt-2 grid gap-2 text-xs text-[#5a534b]">
+                    <li>Start with a Gospel (Mark or John).</li>
+                    <li>Read Acts next to see the early church.</li>
+                    <li>Add a Psalm or Proverb for prayer.</li>
+                    <li>Move to Genesis and Exodus for the story arc.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <aside className="flex flex-col gap-4">
-              <div className="rounded-[32px] bg-[#2f3b52] p-6 text-white shadow-[0_30px_80px_rgba(47,59,82,0.35)]">
-                <p className="text-sm uppercase tracking-[0.4em] text-[#e9d9c4]">
-                  Today
-                </p>
-                <p className="mt-3 text-4xl font-semibold">
-                  {stats.active}
-                </p>
-                <p className="mt-2 text-sm text-[#e9d9c4]">
-                  readings still in motion
-                </p>
+            <div className="rounded-[28px] bg-white/90 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)] backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
+                Preferences
+              </p>
+              <div className="mt-3 grid gap-3">
+                <div>
+                  <label className="text-xs text-[#7a6b5a]">
+                    Translation
+                  </label>
+                  <select
+                    value={translation}
+                    onChange={(event) => setTranslation(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-[#e1d6c6] bg-white px-3 py-2 text-sm font-medium text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
+                  >
+                    {translations.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs text-[#7a6b5a]">
+                    ESV requires a server API key. If it is not set, you will
+                    see an error message.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-4 py-3">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
+                    <span>Progress</span>
+                    <span>{chapterPercent}%</span>
+                  </div>
+                  <div className="mt-2 h-2 w-full rounded-full bg-[#e7dfd3]">
+                    <div
+                      className="h-2 rounded-full bg-[#b4894f]"
+                      style={{ width: `${chapterPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-[#7a6b5a]">
+                    {chapterStats.completed} / {chapterStats.total} chapters
+                    complete
+                  </p>
+                </div>
               </div>
-              <div className="rounded-[32px] bg-white/90 p-6 shadow-[0_25px_80px_rgba(62,54,41,0.14)] backdrop-blur">
-                <p className="text-sm font-medium text-[#7a6b5a]">
-                  Best way to read
-                </p>
-                <ul className="mt-4 space-y-3 text-sm text-[#5a534b]">
-                  <li>Start with a Gospel (Mark or John).</li>
-                  <li>Read Acts next to see the early church.</li>
-                  <li>Add a Psalm or Proverb for daily prayer.</li>
-                  <li>Move to Genesis and Exodus for the story arc.</li>
-                </ul>
-              </div>
-            </aside>
+            </div>
           </section>
 
           <section className="rounded-[36px] bg-white/85 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
@@ -496,17 +750,30 @@ export default function Home() {
                   All 66 books, chapter by chapter
                 </h2>
                 <p className="text-sm text-[#5a534b]">
-                  Tap a chapter as you finish it.
+                  Tap a chapter to open it, then mark it read.
                 </p>
               </div>
-              <div className="rounded-2xl bg-[#2f3b52] px-5 py-4 text-white shadow-[0_15px_35px_rgba(47,59,82,0.35)]">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-[#e9d9c4]">
-                  Progress
-                </p>
-                <p className="text-2xl font-semibold">
-                  {chapterStats.completed} / {chapterStats.total}
-                </p>
-                <p className="text-xs text-[#e9d9c4]">chapters complete</p>
+              <div className="flex w-full flex-col gap-2 sm:max-w-sm">
+                <label className="text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
+                  Search books
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={bookQuery}
+                    onChange={(event) => setBookQuery(event.target.value)}
+                    placeholder="Type a book name..."
+                    className="h-10 w-full rounded-xl border border-[#e1d6c6] bg-white px-3 text-sm text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
+                  />
+                  {bookQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setBookQuery("")}
+                      className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d]"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -515,11 +782,24 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
                   Old Testament
                 </p>
-                {oldTestament.map((book) => {
+                {filteredOldTestament.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3 text-sm text-[#7a6b5a]">
+                    No Old Testament books match your search.
+                  </p>
+                ) : null}
+                {filteredOldTestament.map((book) => {
                   const completed = chapterSets[book.name]?.size ?? 0;
                   return (
                     <details
                       key={book.name}
+                      open={openBook === book.name}
+                      onToggle={(event) => {
+                        const isOpen = event.currentTarget.open;
+                        setOpenBook(isOpen ? book.name : null);
+                        if (!isOpen && selectedChapter?.book === book.name) {
+                          setSelectedChapter(null);
+                        }
+                      }}
                       className="rounded-2xl border border-[#e7ddcd] bg-white/95 px-4 py-3 shadow-sm"
                     >
                       <summary className="cursor-pointer list-none">
@@ -532,32 +812,197 @@ export default function Home() {
                           </span>
                         </div>
                       </summary>
-                      <div className="mt-3 grid grid-cols-6 gap-2 sm:grid-cols-8 md:grid-cols-10">
+                      <div className="mt-3 grid grid-cols-8 gap-2 sm:grid-cols-10 md:grid-cols-12">
                         {chapterNumbers[book.name].map((chapter) => {
                           const checked =
                             chapterSets[book.name]?.has(chapter) ?? false;
+                          const isSelected =
+                            selectedChapter?.book === book.name &&
+                            selectedChapter.chapter === chapter;
                           return (
-                            <label
+                            <button
                               key={`${book.name}-${chapter}`}
-                              className={`flex cursor-pointer items-center justify-center rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
+                              type="button"
+                              onClick={() => openChapter(book.name, chapter)}
+                              className={`flex items-center justify-center rounded-full border px-2 py-1 text-[10px] font-semibold transition ${
                                 checked
                                   ? "border-[#b4894f] bg-[#f4ead8] text-[#2b241d]"
                                   : "border-[#e1d6c6] bg-white text-[#7a6b5a] hover:border-[#cdbd9f]"
-                              }`}
+                              } ${isSelected ? "ring-2 ring-[#b4894f]" : ""}`}
                             >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() =>
-                                  toggleChapter(book.name, chapter)
-                                }
-                                className="sr-only"
-                              />
                               {chapter}
-                            </label>
+                            </button>
                           );
                         })}
                       </div>
+                      {selectedChapter?.book === book.name ? (
+                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-[#f7f1e7] p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-[#2b241d]">
+                                {selectedEntry?.reference ||
+                                  `${book.name} ${selectedChapter.chapter}`}
+                              </p>
+                              <p className="text-xs text-[#7a6b5a]">
+                                {translations.find(
+                                  (option) => option.id === translation
+                                )?.label || translation.toUpperCase()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  toggleChapter(
+                                    book.name,
+                                    selectedChapter.chapter
+                                  )
+                                }
+                                className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+                              >
+                                {chapterSets[book.name]?.has(
+                                  selectedChapter.chapter
+                                )
+                                  ? "Mark unread"
+                                  : "Mark read"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedChapter(null)}
+                                className="rounded-full border border-transparent px-3 py-1 font-semibold text-[#7a6b5a] transition hover:text-[#2b241d]"
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-2 text-sm leading-relaxed text-[#2b241d]">
+                            {selectedEntry?.status === "loading" ||
+                            !selectedEntry ? (
+                              <p className="text-sm text-[#7a6b5a]">
+                                Loading chapter...
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "error" ? (
+                              <p className="text-sm text-[#8b6a3d]">
+                                {selectedEntry.error}
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            hasDisplayedVerses ? (
+                              <div className="space-y-2">
+                                {displayedVerses.map((verse) => (
+                                  <div
+                                    key={`${verse.verse}-${verse.text}`}
+                                    className="grid grid-cols-[28px_1fr] gap-3 rounded-xl border border-[#e7dfd3] bg-white/80 px-3 py-2"
+                                  >
+                                    <span className="text-[10px] font-mono text-[#8b6a3d]">
+                                      {verse.verse}
+                                    </span>
+                                    <p className="text-sm leading-relaxed text-[#2b241d]">
+                                      {verse.text}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            !hasDisplayedVerses &&
+                            hasSelectedText ? (
+                              <p className="whitespace-pre-line text-sm text-[#2b241d]">
+                                {selectedEntry.text}
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            !hasDisplayedVerses &&
+                            !hasSelectedText ? (
+                              <p className="text-sm text-[#7a6b5a]">
+                                No text returned for this chapter.
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            selectedEntry?.copyright ? (
+                              <p className="text-[11px] text-[#7a6b5a]">
+                                {selectedEntry.copyright}
+                              </p>
+                            ) : null}
+                          </div>
+
+                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-white px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
+                              Listen
+                            </p>
+                            {!ttsSupported ? (
+                              <span className="text-xs text-[#7a6b5a]">
+                                Not supported
+                              </span>
+                            ) : null}
+                          </div>
+                          {!ttsSupported ? null : (
+                            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr]">
+                              <div className="flex items-end gap-2">
+                                {!isSpeaking ? (
+                                  <button
+                                    type="button"
+                                    onClick={startSpeech}
+                                    disabled={!canSpeak}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63] disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    Play
+                                  </button>
+                                ) : isPaused ? (
+                                  <button
+                                    type="button"
+                                    onClick={resumeSpeech}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
+                                  >
+                                    Resume
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={pauseSpeech}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
+                                  >
+                                    Pause
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={stopSpeech}
+                                  disabled={!isSpeaking && !isPaused}
+                                  className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Stop
+                                </button>
+                              </div>
+                              <div>
+                                <label className="text-xs text-[#7a6b5a]">
+                                  Speed
+                                </label>
+                                <div className="mt-2 flex items-center gap-3">
+                                  <input
+                                    type="range"
+                                    min="0.7"
+                                    max="1.4"
+                                    step="0.05"
+                                    value={speechRate}
+                                    onChange={(event) =>
+                                      setSpeechRate(Number(event.target.value))
+                                    }
+                                    className="w-full accent-[#b4894f]"
+                                  />
+                                  <span className="text-xs text-[#7a6b5a]">
+                                    {speechRate.toFixed(2)}x
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        </div>
+                      ) : null}
                     </details>
                   );
                 })}
@@ -566,11 +1011,24 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
                   New Testament
                 </p>
-                {newTestament.map((book) => {
+                {filteredNewTestament.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3 text-sm text-[#7a6b5a]">
+                    No New Testament books match your search.
+                  </p>
+                ) : null}
+                {filteredNewTestament.map((book) => {
                   const completed = chapterSets[book.name]?.size ?? 0;
                   return (
                     <details
                       key={book.name}
+                      open={openBook === book.name}
+                      onToggle={(event) => {
+                        const isOpen = event.currentTarget.open;
+                        setOpenBook(isOpen ? book.name : null);
+                        if (!isOpen && selectedChapter?.book === book.name) {
+                          setSelectedChapter(null);
+                        }
+                      }}
                       className="rounded-2xl border border-[#e7ddcd] bg-white/95 px-4 py-3 shadow-sm"
                     >
                       <summary className="cursor-pointer list-none">
@@ -583,32 +1041,197 @@ export default function Home() {
                           </span>
                         </div>
                       </summary>
-                      <div className="mt-3 grid grid-cols-6 gap-2 sm:grid-cols-8 md:grid-cols-10">
+                      <div className="mt-3 grid grid-cols-8 gap-2 sm:grid-cols-10 md:grid-cols-12">
                         {chapterNumbers[book.name].map((chapter) => {
                           const checked =
                             chapterSets[book.name]?.has(chapter) ?? false;
+                          const isSelected =
+                            selectedChapter?.book === book.name &&
+                            selectedChapter.chapter === chapter;
                           return (
-                            <label
+                            <button
                               key={`${book.name}-${chapter}`}
-                              className={`flex cursor-pointer items-center justify-center rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
+                              type="button"
+                              onClick={() => openChapter(book.name, chapter)}
+                              className={`flex items-center justify-center rounded-full border px-2 py-1 text-[10px] font-semibold transition ${
                                 checked
                                   ? "border-[#b4894f] bg-[#f4ead8] text-[#2b241d]"
                                   : "border-[#e1d6c6] bg-white text-[#7a6b5a] hover:border-[#cdbd9f]"
-                              }`}
+                              } ${isSelected ? "ring-2 ring-[#b4894f]" : ""}`}
                             >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() =>
-                                  toggleChapter(book.name, chapter)
-                                }
-                                className="sr-only"
-                              />
                               {chapter}
-                            </label>
+                            </button>
                           );
                         })}
                       </div>
+                      {selectedChapter?.book === book.name ? (
+                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-[#f7f1e7] p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-[#2b241d]">
+                                {selectedEntry?.reference ||
+                                  `${book.name} ${selectedChapter.chapter}`}
+                              </p>
+                              <p className="text-xs text-[#7a6b5a]">
+                                {translations.find(
+                                  (option) => option.id === translation
+                                )?.label || translation.toUpperCase()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  toggleChapter(
+                                    book.name,
+                                    selectedChapter.chapter
+                                  )
+                                }
+                                className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+                              >
+                                {chapterSets[book.name]?.has(
+                                  selectedChapter.chapter
+                                )
+                                  ? "Mark unread"
+                                  : "Mark read"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedChapter(null)}
+                                className="rounded-full border border-transparent px-3 py-1 font-semibold text-[#7a6b5a] transition hover:text-[#2b241d]"
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-2 text-sm leading-relaxed text-[#2b241d]">
+                            {selectedEntry?.status === "loading" ||
+                            !selectedEntry ? (
+                              <p className="text-sm text-[#7a6b5a]">
+                                Loading chapter...
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "error" ? (
+                              <p className="text-sm text-[#8b6a3d]">
+                                {selectedEntry.error}
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            hasDisplayedVerses ? (
+                              <div className="space-y-2">
+                                {displayedVerses.map((verse) => (
+                                  <div
+                                    key={`${verse.verse}-${verse.text}`}
+                                    className="grid grid-cols-[28px_1fr] gap-3 rounded-xl border border-[#e7dfd3] bg-white/80 px-3 py-2"
+                                  >
+                                    <span className="text-[10px] font-mono text-[#8b6a3d]">
+                                      {verse.verse}
+                                    </span>
+                                    <p className="text-sm leading-relaxed text-[#2b241d]">
+                                      {verse.text}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            !hasDisplayedVerses &&
+                            hasSelectedText ? (
+                              <p className="whitespace-pre-line text-sm text-[#2b241d]">
+                                {selectedEntry.text}
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            !hasDisplayedVerses &&
+                            !hasSelectedText ? (
+                              <p className="text-sm text-[#7a6b5a]">
+                                No text returned for this chapter.
+                              </p>
+                            ) : null}
+                            {selectedEntry?.status === "success" &&
+                            selectedEntry?.copyright ? (
+                              <p className="text-[11px] text-[#7a6b5a]">
+                                {selectedEntry.copyright}
+                              </p>
+                            ) : null}
+                          </div>
+
+                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-white px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
+                              Listen
+                            </p>
+                            {!ttsSupported ? (
+                              <span className="text-xs text-[#7a6b5a]">
+                                Not supported
+                              </span>
+                            ) : null}
+                          </div>
+                          {!ttsSupported ? null : (
+                            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr]">
+                              <div className="flex items-end gap-2">
+                                {!isSpeaking ? (
+                                  <button
+                                    type="button"
+                                    onClick={startSpeech}
+                                    disabled={!canSpeak}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63] disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    Play
+                                  </button>
+                                ) : isPaused ? (
+                                  <button
+                                    type="button"
+                                    onClick={resumeSpeech}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
+                                  >
+                                    Resume
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={pauseSpeech}
+                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
+                                  >
+                                    Pause
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={stopSpeech}
+                                  disabled={!isSpeaking && !isPaused}
+                                  className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Stop
+                                </button>
+                              </div>
+                              <div>
+                                <label className="text-xs text-[#7a6b5a]">
+                                  Speed
+                                </label>
+                                <div className="mt-2 flex items-center gap-3">
+                                  <input
+                                    type="range"
+                                    min="0.7"
+                                    max="1.4"
+                                    step="0.05"
+                                    value={speechRate}
+                                    onChange={(event) =>
+                                      setSpeechRate(Number(event.target.value))
+                                    }
+                                    className="w-full accent-[#b4894f]"
+                                  />
+                                  <span className="text-xs text-[#7a6b5a]">
+                                    {speechRate.toFixed(2)}x
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        </div>
+                      ) : null}
                     </details>
                   );
                 })}
