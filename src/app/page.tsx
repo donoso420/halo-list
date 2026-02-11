@@ -796,7 +796,7 @@ export default function Home() {
                   className="h-28 w-full rounded-2xl bg-white object-contain p-2"
                 />
                 <p className="mt-3 text-sm font-semibold text-[#2b241d]">
-                  Noah’s Ark
+                  Noah's Ark
                 </p>
                 <p className="text-xs text-[#7a6b5a]">
                   God keeps His promises.
