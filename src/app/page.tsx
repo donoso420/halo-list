@@ -740,6 +740,107 @@ export default function Home() {
             </div>
           </section>
 
+          <section className="rounded-[36px] border border-[#e7d8c0] bg-gradient-to-br from-[#fff4dd] via-[#f7f7ff] to-[#e9f8f1] p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
+            <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
+                  Kids Bible corner
+                </p>
+                <h2 className="text-2xl font-semibold text-[#2b241d] md:text-3xl">
+                  Simple stories, big love.
+                </h2>
+                <p className="text-sm text-[#5a534b] md:text-base">
+                  A friendly space for little hearts with short stories,
+                  memory verses, and activities the whole family can do
+                  together.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#7a5b2b]">
+                  <span className="rounded-full bg-white/80 px-3 py-1">
+                    Faith based
+                  </span>
+                  <span className="rounded-full bg-white/80 px-3 py-1">
+                    Printable
+                  </span>
+                  <span className="rounded-full bg-white/80 px-3 py-1">
+                    Family friendly
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-[24px] bg-white/90 p-4 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
+                <img
+                  src="/kids-rainbow.svg"
+                  alt="Rainbow and stars illustration"
+                  className="h-40 w-full rounded-2xl bg-white object-contain p-2"
+                />
+                <div className="mt-3 space-y-1">
+                  <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
+                    Story of the week
+                  </p>
+                  <p className="text-sm font-semibold text-[#2b241d]">
+                    David &amp; Goliath
+                  </p>
+                  <p className="text-xs text-[#7a6b5a]">
+                    Courage with God on your side.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
+              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+                <img
+                  src="/kids-ark.svg"
+                  alt="Boat on waves illustration"
+                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
+                />
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
+                  Noah’s Ark
+                </p>
+                <p className="text-xs text-[#7a6b5a]">
+                  God keeps His promises.
+                </p>
+              </div>
+              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+                <img
+                  src="/kids-shepherd.svg"
+                  alt="Shepherd staff illustration"
+                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
+                />
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
+                  The Good Shepherd
+                </p>
+                <p className="text-xs text-[#7a6b5a]">
+                  Jesus cares for every child.
+                </p>
+              </div>
+              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+                <img
+                  src="/kids-book.svg"
+                  alt="Open book illustration"
+                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
+                />
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
+                  Memory Verse
+                </p>
+                <p className="text-xs text-[#7a6b5a]">
+                  “Be kind and compassionate.” Ephesians 4:32
+                </p>
+              </div>
+              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+                <img
+                  src="/kids-sun.svg"
+                  alt="Smiling sun illustration"
+                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
+                />
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
+                  Activity Time
+                </p>
+                <p className="text-xs text-[#7a6b5a]">
+                  Coloring pages, puzzles, and prayers.
+                </p>
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-[36px] bg-white/85 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
