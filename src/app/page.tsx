@@ -786,7 +786,10 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-4">
-              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+              <a
+                href="/kids?story=noah"
+                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
+              >
                 <img
                   src="/kids-ark.svg"
                   alt="Boat on waves illustration"
@@ -798,8 +801,11 @@ export default function Home() {
                 <p className="text-xs text-[#7a6b5a]">
                   God keeps His promises.
                 </p>
-              </div>
-              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+              </a>
+              <a
+                href="/kids?story=shepherd"
+                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
+              >
                 <img
                   src="/kids-shepherd.svg"
                   alt="Shepherd staff illustration"
@@ -811,8 +817,11 @@ export default function Home() {
                 <p className="text-xs text-[#7a6b5a]">
                   Jesus cares for every child.
                 </p>
-              </div>
-              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+              </a>
+              <a
+                href="/kids?story=memory"
+                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
+              >
                 <img
                   src="/kids-book.svg"
                   alt="Open book illustration"
@@ -824,8 +833,11 @@ export default function Home() {
                 <p className="text-xs text-[#7a6b5a]">
                   “Be kind and compassionate.” Ephesians 4:32
                 </p>
-              </div>
-              <div className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)]">
+              </a>
+              <a
+                href="/kids?story=activity"
+                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
+              >
                 <img
                   src="/kids-sun.svg"
                   alt="Smiling sun illustration"
@@ -837,7 +849,7 @@ export default function Home() {
                 <p className="text-xs text-[#7a6b5a]">
                   Coloring pages, puzzles, and prayers.
                 </p>
-              </div>
+              </a>
             </div>
           </section>
 
