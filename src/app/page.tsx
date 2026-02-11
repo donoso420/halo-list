@@ -1,1245 +1,266 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-
-type BibleBook = {
-  name: string;
-  chapters: number;
-  testament: "OT" | "NT";
-};
-
-type ChapterProgress = Record<string, number[]>;
-
-type TranslationOption = {
-  id: string;
-  label: string;
-  disabled?: boolean;
-};
-
-type Verse = {
-  verse: number;
-  text: string;
-};
-
-type ChapterCacheEntry = {
-  status: "idle" | "loading" | "success" | "error";
-  verses?: Verse[];
-  text?: string;
-  reference?: string;
-  copyright?: string;
-  error?: string;
-};
-
-type PlanItem = {
-  book: string;
-  chapter: number;
-};
-
-const parseVersesFromText = (text: string): Verse[] => {
-  const cleaned = text.replace(/\r/g, "").trim();
-  if (!cleaned) {
-    return [];
-  }
-
-  const matches = [...cleaned.matchAll(/(^|\n)\s*(\d+)\s+/g)];
-  if (matches.length === 0) {
-    return [];
-  }
-
-  const verses: Verse[] = [];
-  for (let i = 0; i < matches.length; i += 1) {
-    const match = matches[i];
-    const next = matches[i + 1];
-    const verseNumber = Number(match[2]);
-    const start = (match.index ?? 0) + match[0].length;
-    const end = next?.index ?? cleaned.length;
-    const verseText = cleaned
-      .slice(start, end)
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (verseText) {
-      verses.push({ verse: verseNumber, text: verseText });
-    }
-  }
-
-  return verses;
-};
-
-const pickPreferredVoice = (list: SpeechSynthesisVoice[]) => {
-  if (list.length === 0) {
-    return undefined;
-  }
-
-  const preferred = [
-    "Samantha",
-    "Ava",
-    "Karen",
-    "Moira",
-    "Google US English",
-    "Google UK English Female",
-    "Microsoft Zira",
-  ];
-
-  for (const name of preferred) {
-    const match = list.find((voice) =>
-      voice.name.toLowerCase().includes(name.toLowerCase())
-    );
-    if (match) {
-      return match;
-    }
-  }
-
-  return list.find((voice) => voice.lang.startsWith("en")) || list[0];
-};
-
-const CHAPTERS_KEY = "focus-list.chapters.v1";
-const DAILY_GOAL_KEY = "focus-list.daily-goal.v1";
-
-const translations: TranslationOption[] = [
-  { id: "kjv", label: "King James Version (KJV)" },
-  { id: "esv", label: "English Standard Version (ESV)" },
-  { id: "asv", label: "American Standard Version (ASV)" },
-  { id: "web", label: "World English Bible (WEB)" },
-  { id: "bbe", label: "Bible in Basic English (BBE)" },
-];
-
-const bibleBooks: BibleBook[] = [
-  { name: "Genesis", chapters: 50, testament: "OT" },
-  { name: "Exodus", chapters: 40, testament: "OT" },
-  { name: "Leviticus", chapters: 27, testament: "OT" },
-  { name: "Numbers", chapters: 36, testament: "OT" },
-  { name: "Deuteronomy", chapters: 34, testament: "OT" },
-  { name: "Joshua", chapters: 24, testament: "OT" },
-  { name: "Judges", chapters: 21, testament: "OT" },
-  { name: "Ruth", chapters: 4, testament: "OT" },
-  { name: "1 Samuel", chapters: 31, testament: "OT" },
-  { name: "2 Samuel", chapters: 24, testament: "OT" },
-  { name: "1 Kings", chapters: 22, testament: "OT" },
-  { name: "2 Kings", chapters: 25, testament: "OT" },
-  { name: "1 Chronicles", chapters: 29, testament: "OT" },
-  { name: "2 Chronicles", chapters: 36, testament: "OT" },
-  { name: "Ezra", chapters: 10, testament: "OT" },
-  { name: "Nehemiah", chapters: 13, testament: "OT" },
-  { name: "Esther", chapters: 10, testament: "OT" },
-  { name: "Job", chapters: 42, testament: "OT" },
-  { name: "Psalms", chapters: 150, testament: "OT" },
-  { name: "Proverbs", chapters: 31, testament: "OT" },
-  { name: "Ecclesiastes", chapters: 12, testament: "OT" },
-  { name: "Song of Solomon", chapters: 8, testament: "OT" },
-  { name: "Isaiah", chapters: 66, testament: "OT" },
-  { name: "Jeremiah", chapters: 52, testament: "OT" },
-  { name: "Lamentations", chapters: 5, testament: "OT" },
-  { name: "Ezekiel", chapters: 48, testament: "OT" },
-  { name: "Daniel", chapters: 12, testament: "OT" },
-  { name: "Hosea", chapters: 14, testament: "OT" },
-  { name: "Joel", chapters: 3, testament: "OT" },
-  { name: "Amos", chapters: 9, testament: "OT" },
-  { name: "Obadiah", chapters: 1, testament: "OT" },
-  { name: "Jonah", chapters: 4, testament: "OT" },
-  { name: "Micah", chapters: 7, testament: "OT" },
-  { name: "Nahum", chapters: 3, testament: "OT" },
-  { name: "Habakkuk", chapters: 3, testament: "OT" },
-  { name: "Zephaniah", chapters: 3, testament: "OT" },
-  { name: "Haggai", chapters: 2, testament: "OT" },
-  { name: "Zechariah", chapters: 14, testament: "OT" },
-  { name: "Malachi", chapters: 4, testament: "OT" },
-  { name: "Matthew", chapters: 28, testament: "NT" },
-  { name: "Mark", chapters: 16, testament: "NT" },
-  { name: "Luke", chapters: 24, testament: "NT" },
-  { name: "John", chapters: 21, testament: "NT" },
-  { name: "Acts", chapters: 28, testament: "NT" },
-  { name: "Romans", chapters: 16, testament: "NT" },
-  { name: "1 Corinthians", chapters: 16, testament: "NT" },
-  { name: "2 Corinthians", chapters: 13, testament: "NT" },
-  { name: "Galatians", chapters: 6, testament: "NT" },
-  { name: "Ephesians", chapters: 6, testament: "NT" },
-  { name: "Philippians", chapters: 4, testament: "NT" },
-  { name: "Colossians", chapters: 4, testament: "NT" },
-  { name: "1 Thessalonians", chapters: 5, testament: "NT" },
-  { name: "2 Thessalonians", chapters: 3, testament: "NT" },
-  { name: "1 Timothy", chapters: 6, testament: "NT" },
-  { name: "2 Timothy", chapters: 4, testament: "NT" },
-  { name: "Titus", chapters: 3, testament: "NT" },
-  { name: "Philemon", chapters: 1, testament: "NT" },
-  { name: "Hebrews", chapters: 13, testament: "NT" },
-  { name: "James", chapters: 5, testament: "NT" },
-  { name: "1 Peter", chapters: 5, testament: "NT" },
-  { name: "2 Peter", chapters: 3, testament: "NT" },
-  { name: "1 John", chapters: 5, testament: "NT" },
-  { name: "2 John", chapters: 1, testament: "NT" },
-  { name: "3 John", chapters: 1, testament: "NT" },
-  { name: "Jude", chapters: 1, testament: "NT" },
-  { name: "Revelation", chapters: 22, testament: "NT" },
-];
-
 export default function Home() {
-  const [chapterProgress, setChapterProgress] = useState<ChapterProgress>({});
-  const [translation, setTranslation] = useState<string>("kjv");
-  const [dailyGoal, setDailyGoal] = useState<number>(2);
-  const [selectedChapter, setSelectedChapter] = useState<{
-    book: string;
-    chapter: number;
-  } | null>(null);
-  const [chapterCache, setChapterCache] = useState<
-    Record<string, ChapterCacheEntry>
-  >({});
-  const [openBook, setOpenBook] = useState<string | null>(null);
-  const [ttsSupported, setTtsSupported] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string>("");
-  const [speechRate, setSpeechRate] = useState(1);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [bookQuery, setBookQuery] = useState("");
-
-  useEffect(() => {
-    const raw = localStorage.getItem(CHAPTERS_KEY);
-    if (!raw) {
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw) as ChapterProgress;
-      if (parsed && typeof parsed === "object") {
-        setChapterProgress(parsed);
-      }
-    } catch {
-      localStorage.removeItem(CHAPTERS_KEY);
-    }
-  }, []);
-
-  useEffect(() => {
-    const raw = localStorage.getItem(DAILY_GOAL_KEY);
-    if (!raw) {
-      return;
-    }
-    const parsed = Number(raw);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      setDailyGoal(Math.min(Math.max(parsed, 1), 6));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(CHAPTERS_KEY, JSON.stringify(chapterProgress));
-  }, [chapterProgress]);
-
-  useEffect(() => {
-    localStorage.setItem(DAILY_GOAL_KEY, String(dailyGoal));
-  }, [dailyGoal]);
-
-  const chapterNumbers = useMemo(() => {
-    const map: Record<string, number[]> = {};
-    for (const book of bibleBooks) {
-      map[book.name] = Array.from({ length: book.chapters }, (_, i) => i + 1);
-    }
-    return map;
-  }, []);
-
-  const chapterOrder = useMemo<PlanItem[]>(() => {
-    const list: PlanItem[] = [];
-    for (const book of bibleBooks) {
-      for (let chapter = 1; chapter <= book.chapters; chapter += 1) {
-        list.push({ book: book.name, chapter });
-      }
-    }
-    return list;
-  }, []);
-
-  const oldTestament = useMemo(
-    () => bibleBooks.filter((book) => book.testament === "OT"),
-    []
-  );
-
-  const newTestament = useMemo(
-    () => bibleBooks.filter((book) => book.testament === "NT"),
-    []
-  );
-
-  const chapterSets = useMemo(() => {
-    const map: Record<string, Set<number>> = {};
-    for (const book of bibleBooks) {
-      const stored = chapterProgress[book.name];
-      map[book.name] = new Set(Array.isArray(stored) ? stored : []);
-    }
-    return map;
-  }, [chapterProgress]);
-
-  const chapterStats = useMemo(() => {
-    const total = bibleBooks.reduce((sum, book) => sum + book.chapters, 0);
-    const completed = bibleBooks.reduce(
-      (sum, book) => sum + (chapterSets[book.name]?.size ?? 0),
-      0
-    );
-    return { total, completed };
-  }, [chapterSets]);
-
-  const chapterPercent = useMemo(() => {
-    if (!chapterStats.total) {
-      return 0;
-    }
-    return Math.round((chapterStats.completed / chapterStats.total) * 100);
-  }, [chapterStats]);
-
-  const unreadChapters = useMemo(() => {
-    return chapterOrder.filter(
-      (item) => !chapterSets[item.book]?.has(item.chapter)
-    );
-  }, [chapterOrder, chapterSets]);
-
-  const planGoal = Math.max(1, Math.min(dailyGoal, 6));
-
-  const planChapters = useMemo(
-    () => unreadChapters.slice(0, planGoal),
-    [unreadChapters, planGoal]
-  );
-
-  const normalizedQuery = bookQuery.trim().toLowerCase();
-  const filteredOldTestament = useMemo(() => {
-    if (!normalizedQuery) {
-      return oldTestament;
-    }
-    return oldTestament.filter((book) =>
-      book.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [oldTestament, normalizedQuery]);
-
-  const filteredNewTestament = useMemo(() => {
-    if (!normalizedQuery) {
-      return newTestament;
-    }
-    return newTestament.filter((book) =>
-      book.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [newTestament, normalizedQuery]);
-
-  const selectedKey = useMemo(() => {
-    if (!selectedChapter) {
-      return null;
-    }
-    return `${translation}:${selectedChapter.book}:${selectedChapter.chapter}`;
-  }, [selectedChapter, translation]);
-
-  const selectedEntry = useMemo(() => {
-    if (!selectedKey) {
-      return undefined;
-    }
-    return chapterCache[selectedKey];
-  }, [chapterCache, selectedKey]);
-
-  const displayedVerses = useMemo(() => {
-    if (selectedEntry?.verses && selectedEntry.verses.length > 0) {
-      return selectedEntry.verses;
-    }
-    if (selectedEntry?.text) {
-      const parsed = parseVersesFromText(selectedEntry.text);
-      if (parsed.length > 0) {
-        return parsed;
-      }
-    }
-    return [];
-  }, [selectedEntry]);
-
-  const hasSelectedText = Boolean(
-    selectedEntry?.text && selectedEntry.text.trim().length > 0
-  );
-  const hasDisplayedVerses = displayedVerses.length > 0;
-
-  const canSpeak =
-    selectedEntry?.status === "success" &&
-    (hasSelectedText || hasDisplayedVerses);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const synth = window.speechSynthesis;
-    if (!synth) {
-      setTtsSupported(false);
-      return;
-    }
-
-    setTtsSupported(true);
-
-    const loadVoices = () => {
-      const list = synth.getVoices();
-      setVoices(list);
-      const preferred = pickPreferredVoice(list);
-      setSelectedVoice((prev) => prev || preferred?.voiceURI || "");
-    };
-
-    loadVoices();
-    synth.onvoiceschanged = loadVoices;
-
-    return () => {
-      synth.onvoiceschanged = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    if (synth?.speaking || synth?.paused) {
-      synth.cancel();
-    }
-    setIsSpeaking(false);
-    setIsPaused(false);
-  }, [selectedKey, translation]);
-
-  useEffect(() => {
-    if (!selectedChapter || !selectedKey) {
-      return;
-    }
-
-    if (selectedEntry?.status === "loading" || selectedEntry?.status === "success") {
-      return;
-    }
-
-    const loadChapter = async () => {
-      setChapterCache((prev) => ({
-        ...prev,
-        [selectedKey]: {
-          status: "loading",
-        },
-      }));
-
-      const ref = `${selectedChapter.book} ${selectedChapter.chapter}`;
-      const url = `/api/bible?ref=${encodeURIComponent(ref)}&translation=${translation}`;
-
-      try {
-        const response = await fetch(url);
-        const data = (await response.json()) as {
-          verses?: Verse[];
-          reference?: string;
-          text?: string;
-          copyright?: string;
-          error?: string;
-        };
-
-        if (!response.ok || data.error) {
-          throw new Error(data.error || "Unable to load this chapter.");
-        }
-
-        const verses = Array.isArray(data.verses)
-          ? data.verses.map((verse) => ({
-              verse: verse.verse,
-              text: String(verse.text || "").trim(),
-            }))
-          : undefined;
-
-        const text =
-          typeof data.text === "string" && data.text.trim().length > 0
-            ? data.text.trim()
-            : undefined;
-
-        setChapterCache((prev) => ({
-          ...prev,
-          [selectedKey]: {
-            status: "success",
-            verses,
-            text,
-            reference:
-              data.reference || `${selectedChapter.book} ${selectedChapter.chapter}`,
-            copyright: data.copyright,
-          },
-        }));
-      } catch (error) {
-        setChapterCache((prev) => ({
-          ...prev,
-          [selectedKey]: {
-            status: "error",
-            error:
-              error instanceof Error
-                ? error.message
-                : "Unable to load this chapter.",
-          },
-        }));
-      }
-    };
-
-    loadChapter();
-  }, [selectedChapter, selectedKey, translation]);
-
-  const openChapter = (book: string, chapter: number) => {
-    setSelectedChapter({ book, chapter });
-    setOpenBook(book);
-  };
-
-  const toggleChapter = (bookName: string, chapter: number) => {
-    setChapterProgress((prev) => {
-      const current = Array.isArray(prev[bookName]) ? prev[bookName] : [];
-      const set = new Set(current);
-      if (set.has(chapter)) {
-        set.delete(chapter);
-      } else {
-        set.add(chapter);
-      }
-      return {
-        ...prev,
-        [bookName]: Array.from(set).sort((a, b) => a - b),
-      };
-    });
-  };
-
-  const markPlanRead = () => {
-    if (planChapters.length === 0) {
-      return;
-    }
-    setChapterProgress((prev) => {
-      const next: ChapterProgress = { ...prev };
-      for (const item of planChapters) {
-        const current = Array.isArray(next[item.book]) ? next[item.book] : [];
-        const set = new Set(current);
-        set.add(item.chapter);
-        next[item.book] = Array.from(set).sort((a, b) => a - b);
-      }
-      return next;
-    });
-  };
-
-  const startSpeech = () => {
-    if (!canSpeak || !selectedEntry) {
-      return;
-    }
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const synth = window.speechSynthesis;
-    if (!synth) {
-      return;
-    }
-
-    synth.cancel();
-
-    const text = hasDisplayedVerses
-      ? displayedVerses
-          .map((verse) => verse.text.replace(/\s+/g, " ").trim())
-          .join(" ")
-      : selectedEntry.text?.replace(/\s+/g, " ").trim() || "";
-
-    if (!text) {
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voice = voices.find((item) => item.voiceURI === selectedVoice);
-    if (voice) {
-      utterance.voice = voice;
-    }
-    utterance.rate = speechRate;
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      setIsPaused(false);
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setIsPaused(false);
-    };
-
-    setIsSpeaking(true);
-    setIsPaused(false);
-    synth.speak(utterance);
-  };
-
-  const pauseSpeech = () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    if (synth?.speaking && !synth.paused) {
-      synth.pause();
-      setIsPaused(true);
-    }
-  };
-
-  const resumeSpeech = () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    if (synth?.paused) {
-      synth.resume();
-      setIsPaused(false);
-    }
-  };
-
-  const stopSpeech = () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    if (synth?.speaking || synth?.paused) {
-      synth.cancel();
-    }
-    setIsSpeaking(false);
-    setIsPaused(false);
-  };
-
   return (
-    <div className="min-h-screen bg-[#f6f2ea] text-[#2b241d]">
-      <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,246,230,0.95),_transparent_55%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.55),_transparent_65%)] opacity-70" />
-        <div className="pointer-events-none absolute -left-24 top-16 h-64 w-64 rounded-full bg-[#e8d3b0] opacity-40 blur-3xl" />
-        <div className="pointer-events-none absolute right-8 top-12 h-72 w-72 rounded-full bg-[#cbd7e7] opacity-50 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-[#f0e1c8] opacity-40 blur-3xl" />
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 md:px-10">
-          <header className="flex flex-col gap-4">
-            <h1 className="text-6xl font-semibold leading-tight text-[#2f3b52] md:text-7xl">
-              Halo List
-            </h1>
-            <p className="max-w-2xl text-xs uppercase tracking-[0.45em] text-[#8b6a3d] md:text-sm">
-              Read gently. Finish faithfully.
-            </p>
-            <p className="max-w-2xl text-base text-[#5a534b] md:text-lg">
-              A calm, dedicated space for your Bible-reading plan. Everything
-              saves locally in your browser.
-            </p>
-          </header>
-
-          <section className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-[28px] bg-white/90 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)] backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
-                Reading plan
-              </p>
-              <div className="mt-3 grid gap-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-[#2b241d]">
-                      Chapters per day
-                    </p>
-                    <p className="text-xs text-[#7a6b5a]">
-                      Keep it gentle and steady.
-                    </p>
-                  </div>
-                  <select
-                    value={planGoal}
-                    onChange={(event) =>
-                      setDailyGoal(Number(event.target.value))
-                    }
-                    className="rounded-xl border border-[#e1d6c6] bg-white px-3 py-2 text-xs font-semibold text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
-                  >
-                    {[1, 2, 3, 4, 5, 6].map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-4 py-3">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                    <span>Next up</span>
-                    <span>{unreadChapters.length} left</span>
-                  </div>
-                  {planChapters.length === 0 ? (
-                    <p className="mt-3 text-sm text-[#7a6b5a]">
-                      Every chapter is complete. Well done.
-                    </p>
-                  ) : (
-                    <>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {planChapters.map((item) => (
-                          <button
-                            key={`${item.book}-${item.chapter}`}
-                            type="button"
-                            onClick={() => openChapter(item.book, item.chapter)}
-                            className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 text-xs font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
-                          >
-                            {item.book} {item.chapter}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openChapter(
-                              planChapters[0].book,
-                              planChapters[0].chapter
-                            )
-                          }
-                          className="rounded-full border border-transparent bg-[#2f3b52] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
-                        >
-                          Open first
-                        </button>
-                        <button
-                          type="button"
-                          onClick={markPlanRead}
-                          className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 text-xs font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
-                        >
-                          Mark plan read
-                        </button>
-                      </div>
-                      <p className="mt-3 text-xs text-[#7a6b5a]">
-                        Open a chapter and press Play to listen as you read.
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
-                    Gentle path
-                  </p>
-                  <ul className="mt-2 grid gap-2 text-xs text-[#5a534b]">
-                    <li>Start with a Gospel (Mark or John).</li>
-                    <li>Read Acts next to see the early church.</li>
-                    <li>Add a Psalm or Proverb for prayer.</li>
-                    <li>Move to Genesis and Exodus for the story arc.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[28px] bg-white/90 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)] backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
-                Preferences
-              </p>
-              <div className="mt-3 grid gap-3">
-                <div>
-                  <label className="text-xs text-[#7a6b5a]">
-                    Translation
-                  </label>
-                  <select
-                    value={translation}
-                    onChange={(event) => setTranslation(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-[#e1d6c6] bg-white px-3 py-2 text-sm font-medium text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
-                  >
-                    {translations.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-2 text-xs text-[#7a6b5a]">
-                    ESV requires a server API key. If it is not set, you will
-                    see an error message.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-4 py-3">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                    <span>Progress</span>
-                    <span>{chapterPercent}%</span>
-                  </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-[#e7dfd3]">
-                    <div
-                      className="h-2 rounded-full bg-[#b4894f]"
-                      style={{ width: `${chapterPercent}%` }}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-[#7a6b5a]">
-                    {chapterStats.completed} / {chapterStats.total} chapters
-                    complete
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[36px] bg-white/85 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
-                  Bible checklist
-                </p>
-                <h2 className="text-2xl font-semibold text-[#2b241d]">
-                  All 66 books, chapter by chapter
-                </h2>
-                <p className="text-sm text-[#5a534b]">
-                  Tap a chapter to open it, then mark it read.
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-2 sm:max-w-sm">
-                <label className="text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                  Search books
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={bookQuery}
-                    onChange={(event) => setBookQuery(event.target.value)}
-                    placeholder="Type a book name..."
-                    className="h-10 w-full rounded-xl border border-[#e1d6c6] bg-white px-3 text-sm text-[#2b241d] outline-none transition focus:border-[#b4894f] focus:ring-2 focus:ring-[#eadcc8]"
-                  />
-                  {bookQuery ? (
-                    <button
-                      type="button"
-                      onClick={() => setBookQuery("")}
-                      className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d]"
-                    >
-                      Clear
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
-                  Old Testament
-                </p>
-                {filteredOldTestament.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3 text-sm text-[#7a6b5a]">
-                    No Old Testament books match your search.
-                  </p>
-                ) : null}
-                {filteredOldTestament.map((book) => {
-                  const completed = chapterSets[book.name]?.size ?? 0;
-                  return (
-                    <details
-                      key={book.name}
-                      open={openBook === book.name}
-                      onToggle={(event) => {
-                        const isOpen = event.currentTarget.open;
-                        setOpenBook(isOpen ? book.name : null);
-                        if (!isOpen && selectedChapter?.book === book.name) {
-                          setSelectedChapter(null);
-                        }
-                      }}
-                      className="rounded-2xl border border-[#e7ddcd] bg-white/95 px-4 py-3 shadow-sm"
-                    >
-                      <summary className="cursor-pointer list-none">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-[#2b241d]">
-                            {book.name}
-                          </span>
-                          <span className="text-xs text-[#8b6a3d]">
-                            {completed}/{book.chapters}
-                          </span>
-                        </div>
-                      </summary>
-                      <div className="mt-3 grid grid-cols-8 gap-2 sm:grid-cols-10 md:grid-cols-12">
-                        {chapterNumbers[book.name].map((chapter) => {
-                          const checked =
-                            chapterSets[book.name]?.has(chapter) ?? false;
-                          const isSelected =
-                            selectedChapter?.book === book.name &&
-                            selectedChapter.chapter === chapter;
-                          return (
-                            <button
-                              key={`${book.name}-${chapter}`}
-                              type="button"
-                              onClick={() => openChapter(book.name, chapter)}
-                              className={`flex items-center justify-center rounded-full border px-2 py-1 text-[10px] font-semibold transition ${
-                                checked
-                                  ? "border-[#b4894f] bg-[#f4ead8] text-[#2b241d]"
-                                  : "border-[#e1d6c6] bg-white text-[#7a6b5a] hover:border-[#cdbd9f]"
-                              } ${isSelected ? "ring-2 ring-[#b4894f]" : ""}`}
-                            >
-                              {chapter}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {selectedChapter?.book === book.name ? (
-                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-[#f7f1e7] p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold text-[#2b241d]">
-                                {selectedEntry?.reference ||
-                                  `${book.name} ${selectedChapter.chapter}`}
-                              </p>
-                              <p className="text-xs text-[#7a6b5a]">
-                                {translations.find(
-                                  (option) => option.id === translation
-                                )?.label || translation.toUpperCase()}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  toggleChapter(
-                                    book.name,
-                                    selectedChapter.chapter
-                                  )
-                                }
-                                className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
-                              >
-                                {chapterSets[book.name]?.has(
-                                  selectedChapter.chapter
-                                )
-                                  ? "Mark unread"
-                                  : "Mark read"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedChapter(null)}
-                                className="rounded-full border border-transparent px-3 py-1 font-semibold text-[#7a6b5a] transition hover:text-[#2b241d]"
-                              >
-                                Close
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-2 text-sm leading-relaxed text-[#2b241d]">
-                            {selectedEntry?.status === "loading" ||
-                            !selectedEntry ? (
-                              <p className="text-sm text-[#7a6b5a]">
-                                Loading chapter...
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "error" ? (
-                              <p className="text-sm text-[#8b6a3d]">
-                                {selectedEntry.error}
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            hasDisplayedVerses ? (
-                              <div className="space-y-2">
-                                {displayedVerses.map((verse) => (
-                                  <div
-                                    key={`${verse.verse}-${verse.text}`}
-                                    className="grid grid-cols-[28px_1fr] gap-3 rounded-xl border border-[#e7dfd3] bg-white/80 px-3 py-2"
-                                  >
-                                    <span className="text-[10px] font-mono text-[#8b6a3d]">
-                                      {verse.verse}
-                                    </span>
-                                    <p className="text-sm leading-relaxed text-[#2b241d]">
-                                      {verse.text}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            !hasDisplayedVerses &&
-                            hasSelectedText ? (
-                              <p className="whitespace-pre-line text-sm text-[#2b241d]">
-                                {selectedEntry.text}
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            !hasDisplayedVerses &&
-                            !hasSelectedText ? (
-                              <p className="text-sm text-[#7a6b5a]">
-                                No text returned for this chapter.
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            selectedEntry?.copyright ? (
-                              <p className="text-[11px] text-[#7a6b5a]">
-                                {selectedEntry.copyright}
-                              </p>
-                            ) : null}
-                          </div>
-
-                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-white px-4 py-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
-                              Listen
-                            </p>
-                            {!ttsSupported ? (
-                              <span className="text-xs text-[#7a6b5a]">
-                                Not supported
-                              </span>
-                            ) : null}
-                          </div>
-                          {!ttsSupported ? null : (
-                            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr]">
-                              <div className="flex items-end gap-2">
-                                {!isSpeaking ? (
-                                  <button
-                                    type="button"
-                                    onClick={startSpeech}
-                                    disabled={!canSpeak}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63] disabled:cursor-not-allowed disabled:opacity-60"
-                                  >
-                                    Play
-                                  </button>
-                                ) : isPaused ? (
-                                  <button
-                                    type="button"
-                                    onClick={resumeSpeech}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
-                                  >
-                                    Resume
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={pauseSpeech}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
-                                  >
-                                    Pause
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={stopSpeech}
-                                  disabled={!isSpeaking && !isPaused}
-                                  className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d] disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Stop
-                                </button>
-                              </div>
-                              <div>
-                                <label className="text-xs text-[#7a6b5a]">
-                                  Speed
-                                </label>
-                                <div className="mt-2 flex items-center gap-3">
-                                  <input
-                                    type="range"
-                                    min="0.7"
-                                    max="1.4"
-                                    step="0.05"
-                                    value={speechRate}
-                                    onChange={(event) =>
-                                      setSpeechRate(Number(event.target.value))
-                                    }
-                                    className="w-full accent-[#b4894f]"
-                                  />
-                                  <span className="text-xs text-[#7a6b5a]">
-                                    {speechRate.toFixed(2)}x
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        </div>
-                      ) : null}
-                    </details>
-                  );
-                })}
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
-                  New Testament
-                </p>
-                {filteredNewTestament.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-[#e1d6c6] bg-white/90 px-4 py-3 text-sm text-[#7a6b5a]">
-                    No New Testament books match your search.
-                  </p>
-                ) : null}
-                {filteredNewTestament.map((book) => {
-                  const completed = chapterSets[book.name]?.size ?? 0;
-                  return (
-                    <details
-                      key={book.name}
-                      open={openBook === book.name}
-                      onToggle={(event) => {
-                        const isOpen = event.currentTarget.open;
-                        setOpenBook(isOpen ? book.name : null);
-                        if (!isOpen && selectedChapter?.book === book.name) {
-                          setSelectedChapter(null);
-                        }
-                      }}
-                      className="rounded-2xl border border-[#e7ddcd] bg-white/95 px-4 py-3 shadow-sm"
-                    >
-                      <summary className="cursor-pointer list-none">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-[#2b241d]">
-                            {book.name}
-                          </span>
-                          <span className="text-xs text-[#8b6a3d]">
-                            {completed}/{book.chapters}
-                          </span>
-                        </div>
-                      </summary>
-                      <div className="mt-3 grid grid-cols-8 gap-2 sm:grid-cols-10 md:grid-cols-12">
-                        {chapterNumbers[book.name].map((chapter) => {
-                          const checked =
-                            chapterSets[book.name]?.has(chapter) ?? false;
-                          const isSelected =
-                            selectedChapter?.book === book.name &&
-                            selectedChapter.chapter === chapter;
-                          return (
-                            <button
-                              key={`${book.name}-${chapter}`}
-                              type="button"
-                              onClick={() => openChapter(book.name, chapter)}
-                              className={`flex items-center justify-center rounded-full border px-2 py-1 text-[10px] font-semibold transition ${
-                                checked
-                                  ? "border-[#b4894f] bg-[#f4ead8] text-[#2b241d]"
-                                  : "border-[#e1d6c6] bg-white text-[#7a6b5a] hover:border-[#cdbd9f]"
-                              } ${isSelected ? "ring-2 ring-[#b4894f]" : ""}`}
-                            >
-                              {chapter}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {selectedChapter?.book === book.name ? (
-                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-[#f7f1e7] p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold text-[#2b241d]">
-                                {selectedEntry?.reference ||
-                                  `${book.name} ${selectedChapter.chapter}`}
-                              </p>
-                              <p className="text-xs text-[#7a6b5a]">
-                                {translations.find(
-                                  (option) => option.id === translation
-                                )?.label || translation.toUpperCase()}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  toggleChapter(
-                                    book.name,
-                                    selectedChapter.chapter
-                                  )
-                                }
-                                className="rounded-full border border-[#cbb89a] bg-white px-3 py-1 font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
-                              >
-                                {chapterSets[book.name]?.has(
-                                  selectedChapter.chapter
-                                )
-                                  ? "Mark unread"
-                                  : "Mark read"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedChapter(null)}
-                                className="rounded-full border border-transparent px-3 py-1 font-semibold text-[#7a6b5a] transition hover:text-[#2b241d]"
-                              >
-                                Close
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-2 text-sm leading-relaxed text-[#2b241d]">
-                            {selectedEntry?.status === "loading" ||
-                            !selectedEntry ? (
-                              <p className="text-sm text-[#7a6b5a]">
-                                Loading chapter...
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "error" ? (
-                              <p className="text-sm text-[#8b6a3d]">
-                                {selectedEntry.error}
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            hasDisplayedVerses ? (
-                              <div className="space-y-2">
-                                {displayedVerses.map((verse) => (
-                                  <div
-                                    key={`${verse.verse}-${verse.text}`}
-                                    className="grid grid-cols-[28px_1fr] gap-3 rounded-xl border border-[#e7dfd3] bg-white/80 px-3 py-2"
-                                  >
-                                    <span className="text-[10px] font-mono text-[#8b6a3d]">
-                                      {verse.verse}
-                                    </span>
-                                    <p className="text-sm leading-relaxed text-[#2b241d]">
-                                      {verse.text}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            !hasDisplayedVerses &&
-                            hasSelectedText ? (
-                              <p className="whitespace-pre-line text-sm text-[#2b241d]">
-                                {selectedEntry.text}
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            !hasDisplayedVerses &&
-                            !hasSelectedText ? (
-                              <p className="text-sm text-[#7a6b5a]">
-                                No text returned for this chapter.
-                              </p>
-                            ) : null}
-                            {selectedEntry?.status === "success" &&
-                            selectedEntry?.copyright ? (
-                              <p className="text-[11px] text-[#7a6b5a]">
-                                {selectedEntry.copyright}
-                              </p>
-                            ) : null}
-                          </div>
-
-                        <div className="mt-4 rounded-2xl border border-[#e1d6c6] bg-white px-4 py-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-[#8b6a3d]">
-                              Listen
-                            </p>
-                            {!ttsSupported ? (
-                              <span className="text-xs text-[#7a6b5a]">
-                                Not supported
-                              </span>
-                            ) : null}
-                          </div>
-                          {!ttsSupported ? null : (
-                            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr]">
-                              <div className="flex items-end gap-2">
-                                {!isSpeaking ? (
-                                  <button
-                                    type="button"
-                                    onClick={startSpeech}
-                                    disabled={!canSpeak}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63] disabled:cursor-not-allowed disabled:opacity-60"
-                                  >
-                                    Play
-                                  </button>
-                                ) : isPaused ? (
-                                  <button
-                                    type="button"
-                                    onClick={resumeSpeech}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
-                                  >
-                                    Resume
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={pauseSpeech}
-                                    className="w-full rounded-xl bg-[#2f3b52] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3b4a63]"
-                                  >
-                                    Pause
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={stopSpeech}
-                                  disabled={!isSpeaking && !isPaused}
-                                  className="rounded-xl border border-[#e1d6c6] px-3 py-2 text-xs font-semibold text-[#7a6b5a] transition hover:border-[#b4894f] hover:text-[#2b241d] disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Stop
-                                </button>
-                              </div>
-                              <div>
-                                <label className="text-xs text-[#7a6b5a]">
-                                  Speed
-                                </label>
-                                <div className="mt-2 flex items-center gap-3">
-                                  <input
-                                    type="range"
-                                    min="0.7"
-                                    max="1.4"
-                                    step="0.05"
-                                    value={speechRate}
-                                    onChange={(event) =>
-                                      setSpeechRate(Number(event.target.value))
-                                    }
-                                    className="w-full accent-[#b4894f]"
-                                  />
-                                  <span className="text-xs text-[#7a6b5a]">
-                                    {speechRate.toFixed(2)}x
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        </div>
-                      ) : null}
-                    </details>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
+    <main className="page">
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark">XR</span>
+          <span>Xtreme Credit Repair</span>
         </div>
-      </div>
-    </div>
+        <nav className="nav-actions">
+          <a href="#features">Features</a>
+          <a href="#how">How it works</a>
+          <a href="#kids">Kids</a>
+          <a href="#pricing">Pricing</a>
+          <a href="/dashboard">Dashboard</a>
+          <button className="btn btn-secondary">Log in</button>
+          <button className="btn btn-primary">Start free</button>
+        </nav>
+      </header>
+
+      <section className="hero">
+        <div>
+          <div className="tag-row">
+            <span className="tag">FCRA compliant</span>
+            <span className="tag">FDCPA safe</span>
+            <span className="tag">GLBA ready</span>
+          </div>
+          <h1>
+            A friendly, guided path to stronger credit 
+            without the confusion.
+          </h1>
+          <p>
+            Xtreme Credit Repair turns your credit report into a prioritized
+            action plan, tracks every dispute letter, and keeps you on schedule
+            with clear deadlines and reminders.
+          </p>
+          <div className="nav-actions">
+            <button className="btn btn-primary">Start free</button>
+            <button className="btn btn-secondary">View plans</button>
+          </div>
+        </div>
+        <div className="hero-card">
+          <div>
+            <div className="metric-row">
+              <span>Plan progress</span>
+              <strong>68%</strong>
+            </div>
+            <div className="progress">
+              <span />
+            </div>
+          </div>
+          <div className="metric-row">
+            <span>Letters sent this month</span>
+            <strong>3</strong>
+          </div>
+          <div className="metric-row">
+            <span>Next deadline</span>
+            <strong>Feb 18</strong>
+          </div>
+          <div>
+            <div className="metric-row">
+              <span>Focus this week</span>
+              <strong>Utilization</strong>
+            </div>
+            <div className="tag-row">
+              <span className="tag">Disputes</span>
+              <span className="tag">Reminders</span>
+              <span className="tag">AI coach</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="section">
+        <h2>Everything you need to move up, clearly organized.</h2>
+        <p>
+          We combine report insights, letter tracking, and gentle coaching into
+          one calm workspace.
+        </p>
+        <div className="grid">
+          <div className="card">
+            <h3>Action plan</h3>
+            <p>
+              Personalized steps ranked by impact, time, and effort — no
+              guesswork.
+            </p>
+          </div>
+          <div className="card">
+            <h3>Dispute tracking</h3>
+            <p>
+              Create letters, log sent dates, and see response deadlines at a
+              glance.
+            </p>
+          </div>
+          <div className="card">
+            <h3>AI guidance</h3>
+            <p>
+              Friendly explanations with guardrails. Educational, never
+              promising outcomes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <h2>Letters & deadlines, tracked automatically.</h2>
+        <p>
+          Every letter has a sent date, a response window, and a reminder
+          schedule. No more guessing.
+        </p>
+        <div className="demo">
+          <div className="card">
+            <h3>Letter timeline</h3>
+            <div className="timeline">
+              <div className="timeline-item">
+                <span className="pill">Sent · Certified Mail</span>
+                <strong>Experian dispute letter</strong>
+                <span>Sent Feb 3 · Response due Mar 4</span>
+              </div>
+              <div className="timeline-item">
+                <span className="pill">Reminder</span>
+                <strong>Follow up in 7 days</strong>
+                <span>We’ll notify you on Feb 25</span>
+              </div>
+              <div className="timeline-item">
+                <span className="pill">Response</span>
+                <strong>Awaiting documentation</strong>
+                <span>Upload proof as soon as it arrives</span>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <h3>What gets tracked</h3>
+            <div className="list">
+              <span>Recipient + delivery method</span>
+              <span>Sent date + proof of mailing</span>
+              <span>Response due date</span>
+              <span>Overdue follow‑up prompts</span>
+              <span>Response attachments</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" className="section">
+        <h2>How it works</h2>
+        <div className="feature-strip">
+          <div className="strip">
+            <strong>1. Upload</strong>
+            <p>Upload your report and we parse it securely.</p>
+          </div>
+          <div className="strip">
+            <strong>2. Plan</strong>
+            <p>Get a ranked plan with clear next steps.</p>
+          </div>
+          <div className="strip">
+            <strong>3. Track</strong>
+            <p>Send letters and track every deadline.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="kids" className="section kids-section">
+        <div className="kids-header">
+          <div>
+            <div className="tag-row">
+              <span className="tag tag-kids">Family friendly</span>
+              <span className="tag tag-kids">Faith based</span>
+              <span className="tag tag-kids">Printable</span>
+            </div>
+            <h2>Kids Bible Corner</h2>
+            <p>
+              A bright, welcoming space for kids to learn Bible stories with
+              simple lessons, fun activities, and gentle reminders to be kind
+              and brave.
+            </p>
+          </div>
+          <div className="kids-hero-card">
+            <img
+              src="/kids-rainbow.svg"
+              alt="Rainbow and stars illustration"
+              className="kids-hero-image"
+            />
+            <div>
+              <strong>Story of the Week</strong>
+              <p>David &amp; Goliath: Courage with God on your side.</p>
+              <button className="btn btn-primary">Open Kids Bible</button>
+            </div>
+          </div>
+        </div>
+        <div className="kids-grid">
+          <div className="kids-card">
+            <img src="/kids-ark.svg" alt="Boat on waves illustration" />
+            <h3>Noah’s Ark</h3>
+            <p>God keeps His promises. Learn about trust and obedience.</p>
+          </div>
+          <div className="kids-card">
+            <img src="/kids-shepherd.svg" alt="Shepherd staff illustration" />
+            <h3>The Good Shepherd</h3>
+            <p>Jesus cares for every one of us, like a loving shepherd.</p>
+          </div>
+          <div className="kids-card">
+            <img src="/kids-book.svg" alt="Open book illustration" />
+            <h3>Memory Verse</h3>
+            <p>“Be kind and compassionate.” Ephesians 4:32</p>
+          </div>
+          <div className="kids-card">
+            <img src="/kids-sun.svg" alt="Smiling sun illustration" />
+            <h3>Activity Time</h3>
+            <p>Coloring pages, puzzles, and prayer prompts for families.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="section">
+        <h2>Simple, tiered pricing</h2>
+        <div className="tiers">
+          <div className="tier">
+            <h3>Free</h3>
+            <div className="price">$0</div>
+            <div className="list">
+              <span>Report upload</span>
+              <span>Basic action plan</span>
+            </div>
+            <button className="btn btn-secondary">Start free</button>
+          </div>
+          <div className="tier highlight">
+            <h3>Pro</h3>
+            <div className="price">$29</div>
+            <div className="list">
+              <span>AI guidance</span>
+              <span>Dispute letters + tracking</span>
+              <span>Reminders</span>
+            </div>
+            <button className="btn btn-primary">Go Pro</button>
+          </div>
+          <div className="tier">
+            <h3>Premium</h3>
+            <div className="price">$59</div>
+            <div className="list">
+              <span>Monitoring (when available)</span>
+              <span>Partner services</span>
+              <span>Priority support</span>
+            </div>
+            <button className="btn btn-secondary">Go Premium</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-band">
+        <h2>Start with clarity, stay on track.</h2>
+        <p>
+          Educational guidance only. We never guarantee a specific credit score.
+        </p>
+        <button className="btn btn-primary">Create your plan</button>
+      </section>
+
+      <footer className="footer">
+        <span>Xtreme Credit Repair</span>
+        <span>
+          Educational guidance only. No credit score guarantees. Consent required
+          for report access.
+        </span>
+      </footer>
+    </main>
   );
 }
