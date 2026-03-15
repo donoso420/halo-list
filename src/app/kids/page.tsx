@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type KidsStory = {
@@ -166,7 +166,7 @@ const stories: KidsStory[] = [
   },
 ];
 
-export default function KidsPage() {
+function KidsPageInner() {
   const searchParams = useSearchParams();
   const storyId = searchParams.get("story");
   const activeStory = useMemo(() => {
@@ -379,5 +379,13 @@ export default function KidsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function KidsPage() {
+  return (
+    <Suspense>
+      <KidsPageInner />
+    </Suspense>
   );
 }
