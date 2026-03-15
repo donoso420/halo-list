@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <circle cx="60" cy="60" r="58" fill="#fff0f4"/>
+  <!-- big heart -->
+  <path d="M60 90 C40 72 18 62 18 44 C18 32 28 24 38 24 C46 24 54 30 60 38 C66 30 74 24 82 24 C92 24 102 32 102 44 C102 62 80 72 60 90Z" fill="#e84060"/>
+  <!-- small heart inside -->
+  <path d="M60 72 C52 64 42 58 42 50 C42 45 46 42 50 42 C54 42 57 45 60 49 C63 45 66 42 70 42 C74 42 78 45 78 50 C78 58 68 64 60 72Z" fill="#f0708a"/>
+  <!-- sparkles -->
+  <circle cx="30" cy="30" r="3" fill="#f5c842"/>
+  <circle cx="90" cy="25" r="4" fill="#f5c842"/>
+  <line x1="90" y1="18" x2="90" y2="14" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
+  <line x1="97" y1="25" x2="101" y2="25" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
+  <line x1="83" y1="25" x2="79" y2="25" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
+  <line x1="30" y1="23" x2="30" y2="19" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
+</svg>

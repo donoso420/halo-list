@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { Fraunces, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+});
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -15,7 +20,8 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Halo List",
-  description: "A calm, dedicated Bible-reading to-do list.",
+  description:
+    "A calm, dedicated space for your Bible-reading plan. Track every chapter, listen as you read, and finish faithfully.",
 };
 
 export default function RootLayout({
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
+        className={`${fraunces.variable} ${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
       >
         {children}
       </body>

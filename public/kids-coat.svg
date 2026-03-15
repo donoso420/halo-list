@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <circle cx="60" cy="60" r="58" fill="#fff8f0"/>
+  <!-- coat shape -->
+  <path d="M35 35 L20 105 L100 105 L85 35 L68 45 L60 38 L52 45 Z" fill="#e86030"/>
+  <!-- stripes / colors on coat -->
+  <path d="M22 68 L98 68" stroke="#f5c842" stroke-width="6"/>
+  <path d="M20 80 L100 80" stroke="#6ab0d4" stroke-width="6"/>
+  <path d="M20 92 L100 92" stroke="#a0d070" stroke-width="6"/>
+  <path d="M22 56 L98 56" stroke="#d470c0" stroke-width="6"/>
+  <!-- collar -->
+  <path d="M52 45 L60 38 L68 45 L60 55 Z" fill="#f0f0f0"/>
+  <!-- sleeves -->
+  <path d="M35 35 L15 60 L25 65 L40 48 Z" fill="#e86030"/>
+  <path d="M85 35 L105 60 L95 65 L80 48 Z" fill="#e86030"/>
+  <!-- sleeve stripes -->
+  <line x1="18" y1="55" x2="38" y2="46" stroke="#f5c842" stroke-width="4"/>
+  <line x1="102" y1="55" x2="82" y2="46" stroke="#f5c842" stroke-width="4"/>
+</svg>

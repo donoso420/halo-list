@@ -587,17 +587,25 @@ export default function Home() {
         <div className="pointer-events-none absolute right-8 top-12 h-72 w-72 rounded-full bg-[#cbd7e7] opacity-50 blur-3xl" />
         <div className="pointer-events-none absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-[#f0e1c8] opacity-40 blur-3xl" />
         <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-16 md:px-10">
-          <header className="flex flex-col gap-4">
-            <h1 className="text-6xl font-semibold leading-tight text-[#2f3b52] md:text-7xl">
-              Halo List
-            </h1>
-            <p className="max-w-2xl text-xs uppercase tracking-[0.45em] text-[#8b6a3d] md:text-sm">
-              Read gently. Finish faithfully.
-            </p>
-            <p className="max-w-2xl text-base text-[#5a534b] md:text-lg">
-              A calm, dedicated space for your Bible-reading plan. Everything
-              saves locally in your browser.
-            </p>
+          <header className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-6xl font-semibold leading-tight text-[#2f3b52] md:text-7xl">
+                Halo List
+              </h1>
+              <p className="max-w-2xl text-xs uppercase tracking-[0.45em] text-[#8b6a3d] md:text-sm">
+                Read gently. Finish faithfully.
+              </p>
+              <p className="max-w-2xl text-base text-[#5a534b] md:text-lg">
+                A calm, dedicated space for your Bible-reading plan. Everything
+                saves locally in your browser.
+              </p>
+            </div>
+            <a
+              href="/dashboard"
+              className="mt-2 rounded-full border border-[#cbb89a] bg-white px-5 py-2 text-sm font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+            >
+              My progress
+            </a>
           </header>
 
           <section className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">

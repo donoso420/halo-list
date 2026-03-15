@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <circle cx="60" cy="60" r="58" fill="#e8f4ff"/>
+  <!-- parted sea walls -->
+  <path d="M10 30 Q20 55 10 85 L10 105 L42 105 L42 85 Q32 55 42 30 Z" fill="#4a90d9"/>
+  <path d="M110 30 Q100 55 110 85 L110 105 L78 105 L78 85 Q88 55 78 30 Z" fill="#4a90d9"/>
+  <!-- wave texture on walls -->
+  <path d="M15 50 Q25 45 35 50" stroke="#7cc0f0" stroke-width="2" fill="none"/>
+  <path d="M12 65 Q22 60 32 65" stroke="#7cc0f0" stroke-width="2" fill="none"/>
+  <path d="M105 50 Q95 45 85 50" stroke="#7cc0f0" stroke-width="2" fill="none"/>
+  <path d="M108 65 Q98 60 88 65" stroke="#7cc0f0" stroke-width="2" fill="none"/>
+  <!-- dry ground path -->
+  <ellipse cx="60" cy="95" rx="20" ry="6" fill="#c8a868"/>
+  <rect x="40" y="68" width="40" height="28" fill="#d4b870" rx="2"/>
+  <!-- small person walking (Moses) with staff -->
+  <circle cx="60" cy="55" r="7" fill="#f5c090"/>
+  <rect x="56" y="62" width="8" height="14" rx="3" fill="#6a8ad4"/>
+  <line x1="68" y1="56" x2="68" y2="80" stroke="#8b5e2a" stroke-width="3" stroke-linecap="round"/>
+  <!-- sun rays above -->
+  <circle cx="60" cy="22" r="10" fill="#f5e060"/>
+  <line x1="60" y1="8" x2="60" y2="4" stroke="#f5e060" stroke-width="3" stroke-linecap="round"/>
+  <line x1="72" y1="12" x2="75" y2="8" stroke="#f5e060" stroke-width="3" stroke-linecap="round"/>
+  <line x1="48" y1="12" x2="45" y2="8" stroke="#f5e060" stroke-width="3" stroke-linecap="round"/>
+</svg>
