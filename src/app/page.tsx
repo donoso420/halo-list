@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { KidsContent } from "@/components/KidsContent";
 
 type BibleBook = {
   name: string;
@@ -174,6 +175,7 @@ const bibleBooks: BibleBook[] = [
 ];
 
 export default function Home() {
+  const [mainTab, setMainTab] = useState<"reader" | "kids">("reader");
   const [chapterProgress, setChapterProgress] = useState<ChapterProgress>({});
   const [translation, setTranslation] = useState<string>("kjv");
   const [dailyGoal, setDailyGoal] = useState<number>(2);
@@ -608,6 +610,38 @@ export default function Home() {
             </a>
           </header>
 
+          {/* Main tab switcher */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setMainTab("reader")}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                mainTab === "reader"
+                  ? "bg-[#2f3b52] text-white shadow-md"
+                  : "border border-[#cbb89a] bg-white text-[#2b241d] hover:border-[#b4894f]"
+              }`}
+            >
+              📖 Bible
+            </button>
+            <button
+              onClick={() => setMainTab("kids")}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                mainTab === "kids"
+                  ? "bg-[#2f3b52] text-white shadow-md"
+                  : "border border-[#cbb89a] bg-white text-[#2b241d] hover:border-[#b4894f]"
+              }`}
+            >
+              👶 Kids Corner
+            </button>
+          </div>
+
+          {mainTab === "kids" && (
+            <div className="rounded-[36px] bg-white/85 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
+              <KidsContent />
+            </div>
+          )}
+
+          {mainTab === "reader" && (
+          <>
           <section className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-[28px] bg-white/90 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)] backdrop-blur">
               <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
@@ -748,98 +782,6 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="rounded-[36px] border border-[#e7d8c0] bg-gradient-to-br from-[#fff4dd] via-[#f7f7ff] to-[#e9f8f1] p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
-            <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
-                  Kids Bible corner
-                </p>
-                <h2 className="text-2xl font-semibold text-[#2b241d] md:text-3xl">
-                  Simple stories, big love.
-                </h2>
-                <p className="text-sm text-[#5a534b] md:text-base">
-                  A friendly space for little hearts with short stories,
-                  memory verses, and activities the whole family can do
-                  together.
-                </p>
-                <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#7a5b2b]">
-                  <span className="rounded-full bg-white/80 px-3 py-1">
-                    Faith based
-                  </span>
-                  <span className="rounded-full bg-white/80 px-3 py-1">
-                    Printable
-                  </span>
-                  <span className="rounded-full bg-white/80 px-3 py-1">
-                    Family friendly
-                  </span>
-                </div>
-              </div>
-              <div className="rounded-[24px] bg-white/90 p-4 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
-                <img
-                  src="/kids-rainbow.svg"
-                  alt="Rainbow and stars illustration"
-                  className="h-40 w-full rounded-2xl bg-white object-contain p-2"
-                />
-                <div className="mt-3 space-y-1">
-                  <p className="text-xs uppercase tracking-[0.3em] text-[#8b6a3d]">
-                    Story of the week
-                  </p>
-                  <p className="text-sm font-semibold text-[#2b241d]">
-                    David &amp; Goliath
-                  </p>
-                  <p className="text-xs text-[#7a6b5a]">
-                    Courage with God on your side.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 grid gap-4 grid-cols-2 md:grid-cols-4">
-              <a
-                href="/kids?story=noah"
-                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
-              >
-                <img
-                  src="/kids-ark.svg"
-                  alt="Noah's Ark illustration"
-                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
-                />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">Noah's Ark</p>
-                <p className="text-xs text-[#7a6b5a]">God keeps His promises.</p>
-              </a>
-              <a
-                href="/kids?story=david"
-                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
-              >
-                <img
-                  src="/kids-david.svg"
-                  alt="David and Goliath illustration"
-                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
-                />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">David &amp; Goliath</p>
-                <p className="text-xs text-[#7a6b5a]">Be brave with God's help.</p>
-              </a>
-              <a
-                href="/kids?story=jesus-birth"
-                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
-              >
-                <img
-                  src="/kids-star.svg"
-                  alt="Baby Jesus star illustration"
-                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
-                />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">Baby Jesus</p>
-                <p className="text-xs text-[#7a6b5a]">God's greatest gift.</p>
-              </a>
-              <a
-                href="/kids"
-                className="rounded-[22px] bg-[#2f3b52] p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)] flex flex-col items-center justify-center text-center"
-              >
-                <div className="text-4xl mb-2">📖</div>
-                <p className="mt-1 text-sm font-semibold text-white">See All Stories</p>
-                <p className="text-xs text-blue-200">15 Bible stories for kids →</p>
-              </a>
-            </div>
-          </section>
 
           <section className="rounded-[36px] bg-white/85 p-6 shadow-[0_30px_90px_rgba(62,54,41,0.18)] backdrop-blur">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -1339,6 +1281,8 @@ export default function Home() {
               </div>
             </div>
           </section>
+          </>
+          )}
         </div>
       </div>
     </div>
