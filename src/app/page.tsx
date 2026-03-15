@@ -793,70 +793,50 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <div className="mt-6 grid gap-4 grid-cols-2 md:grid-cols-4">
               <a
                 href="/kids?story=noah"
                 className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
               >
                 <img
                   src="/kids-ark.svg"
-                  alt="Boat on waves illustration"
+                  alt="Noah's Ark illustration"
                   className="h-28 w-full rounded-2xl bg-white object-contain p-2"
                 />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
-                  Noah's Ark
-                </p>
-                <p className="text-xs text-[#7a6b5a]">
-                  God keeps His promises.
-                </p>
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">Noah's Ark</p>
+                <p className="text-xs text-[#7a6b5a]">God keeps His promises.</p>
               </a>
               <a
-                href="/kids?story=shepherd"
+                href="/kids?story=david"
                 className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
               >
                 <img
-                  src="/kids-shepherd.svg"
-                  alt="Shepherd staff illustration"
+                  src="/kids-david.svg"
+                  alt="David and Goliath illustration"
                   className="h-28 w-full rounded-2xl bg-white object-contain p-2"
                 />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
-                  The Good Shepherd
-                </p>
-                <p className="text-xs text-[#7a6b5a]">
-                  Jesus cares for every child.
-                </p>
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">David &amp; Goliath</p>
+                <p className="text-xs text-[#7a6b5a]">Be brave with God's help.</p>
               </a>
               <a
-                href="/kids?story=memory"
+                href="/kids?story=jesus-birth"
                 className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
               >
                 <img
-                  src="/kids-book.svg"
-                  alt="Open book illustration"
+                  src="/kids-star.svg"
+                  alt="Baby Jesus star illustration"
                   className="h-28 w-full rounded-2xl bg-white object-contain p-2"
                 />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
-                  Memory Verse
-                </p>
-                <p className="text-xs text-[#7a6b5a]">
-                  “Be kind and compassionate.” Ephesians 4:32
-                </p>
+                <p className="mt-3 text-sm font-semibold text-[#2b241d]">Baby Jesus</p>
+                <p className="text-xs text-[#7a6b5a]">God's greatest gift.</p>
               </a>
               <a
-                href="/kids?story=activity"
-                className="rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)]"
+                href="/kids"
+                className="rounded-[22px] bg-[#2f3b52] p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)] flex flex-col items-center justify-center text-center"
               >
-                <img
-                  src="/kids-sun.svg"
-                  alt="Smiling sun illustration"
-                  className="h-28 w-full rounded-2xl bg-white object-contain p-2"
-                />
-                <p className="mt-3 text-sm font-semibold text-[#2b241d]">
-                  Activity Time
-                </p>
-                <p className="text-xs text-[#7a6b5a]">
-                  Coloring pages, puzzles, and prayers.
-                </p>
+                <div className="text-4xl mb-2">📖</div>
+                <p className="mt-1 text-sm font-semibold text-white">See All Stories</p>
+                <p className="text-xs text-blue-200">15 Bible stories for kids →</p>
               </a>
             </div>
           </section>

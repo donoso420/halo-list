@@ -1,382 +1,1190 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type KidsStory = {
   id: string;
   title: string;
+  testament: "OT" | "NT";
+  book: string;
   summary: string;
   verse: string;
   activity: string;
-  image: string;
+  emoji: string;
+  image?: string;
   ref: string;
 };
 
 const stories: KidsStory[] = [
+  // ── OLD TESTAMENT ─────────────────────────────────────────────────────────
+  {
+    id: "creation",
+    title: "God Made the World",
+    testament: "OT",
+    book: "Genesis",
+    summary:
+      "In the very beginning there was nothing — then God spoke and everything came to be! He made light, the sky, the oceans, plants, the sun, the moon, the stars, every animal, and finally people. God looked at everything He made and said it was very good. Whenever you see something beautiful outside, remember — God made it, and He made you too!",
+    verse: 'Genesis 1:1 — "In the beginning God created the heavens and the earth."',
+    activity:
+      "Go outside and find 3 amazing things God made. Draw them and write why each one is wonderful.",
+    emoji: "🌍",
+    image: "/kids-creation.svg",
+    ref: "Genesis 1:1–5",
+  },
+  {
+    id: "adam-eve",
+    title: "Adam and Eve",
+    testament: "OT",
+    book: "Genesis",
+    summary:
+      "God made a beautiful garden called Eden and put the first man Adam and the first woman Eve there. Everything was perfect! God gave them one rule — don't eat from one special tree. But a sneaky snake told Eve to eat the fruit, and she and Adam disobeyed God. They had to leave the garden. But even then, God still loved them and made a plan to fix everything.",
+    verse:
+      'Genesis 3:9 — "God called out to the man, \'Where are you?\'"',
+    activity:
+      "Draw the Garden of Eden with colorful fruits and flowers. Talk about a time you said sorry to someone you love.",
+    emoji: "🌿",
+    ref: "Genesis 2–3",
+  },
   {
     id: "noah",
     title: "Noah's Ark",
+    testament: "OT",
+    book: "Genesis",
     summary:
-      "God asked Noah to build a big boat called an ark. Noah obeyed God even when it was really hard. Then God sent rain, and Noah, his family, and all the animals were safe inside. When the rain stopped, God put a rainbow in the sky as a promise that He would always love us.",
+      "God asked Noah to build a big boat called an ark. Noah obeyed God even when it was really hard. God sent rain for 40 days and nights, and Noah, his family, and all the animals were safe inside. When the rain stopped, God put a rainbow in the sky as a promise that He would always love us and never flood the whole earth again.",
     verse: 'Genesis 6:22 — "Noah did everything just as God commanded him."',
-    activity: "Draw a colorful rainbow. Write 3 promises you know God keeps.",
+    activity:
+      "Draw a colorful rainbow and write 3 promises you know God keeps.",
+    emoji: "🌈",
     image: "/kids-ark.svg",
-    ref: "Genesis 6:9-22",
+    ref: "Genesis 6:9–22",
   },
   {
-    id: "david",
-    title: "David and Goliath",
+    id: "tower-babel",
+    title: "The Tower of Babel",
+    testament: "OT",
+    book: "Genesis",
     summary:
-      "A giant named Goliath scared everyone — except a young boy named David. David trusted God and was not afraid. He picked up a small stone, used his sling, and with God's help the giant fell down! God can help us be brave even when things feel really big and scary.",
-    verse: 'I Samuel 17:45 — "I come to you in the name of the Lord of Hosts."',
-    activity: "Find 5 stones outside. On paper, write something big you trust God with.",
-    image: "/kids-david.svg",
-    ref: "1 Samuel 17:45-50",
+      "Long ago, everyone in the world spoke the same language. The people decided to build a huge tower all the way to the sky — not to praise God, but to show off how great they were. God saw their pride and mixed up their languages so they couldn't understand each other anymore. The people spread out all over the earth. That's why there are so many languages in the world today!",
+    verse:
+      'Genesis 11:4 — "Come, let us build a city with a tower that reaches to the heavens."',
+    activity:
+      "Try to say 'Hello' in 3 different languages. Thank God for all the different people and cultures in the world.",
+    emoji: "🏗️",
+    ref: "Genesis 11:1–9",
   },
   {
-    id: "daniel",
-    title: "Daniel and the Lions",
+    id: "abraham",
+    title: "Abraham Trusts God",
+    testament: "OT",
+    book: "Genesis",
     summary:
-      "Daniel loved God and prayed every single day. Some people did not like this and threw Daniel into a den of hungry lions! But God sent an angel to shut the lions' mouths. Daniel was not hurt at all. God protects those who love and trust Him!",
-    verse: 'Daniel 6:22 — "My God sent his angel and shut the lions\' mouths."',
-    activity: "Draw Daniel safe in the lion's den. Write a thank-you prayer to God for protecting you.",
-    image: "/kids-lion.svg",
-    ref: "Daniel 6:16-23",
-  },
-  {
-    id: "jonah",
-    title: "Jonah and the Big Fish",
-    summary:
-      "God asked Jonah to go help a city, but Jonah ran away on a boat. A big storm came, and Jonah was swallowed by a giant fish! Inside the fish, Jonah prayed and said sorry to God. After three days, the fish spit Jonah onto the beach. Jonah obeyed God, and the city was saved. It is never too late to say sorry and do the right thing!",
-    verse: 'Jonah 2:1 — "Then Jonah prayed to the Lord his God from inside the fish."',
-    activity: "Draw a huge fish with Jonah inside. Write one thing you will obey God in this week.",
-    image: "/kids-whale.svg",
-    ref: "Jonah 1:17",
-  },
-  {
-    id: "jesus-born",
-    title: "Baby Jesus Is Born",
-    summary:
-      "God sent His Son Jesus to earth as a tiny baby. Mary and Joseph traveled to Bethlehem, but there was no room for them. Jesus was born in a stable with the animals. Angels sang in the sky, and shepherds and wise men came to visit. It was the most special birthday ever!",
-    verse: 'Luke 2:11 — "A Savior has been born to you; he is the Messiah, the Lord."',
-    activity: "Make a paper star. Hang it up to remember that Jesus came for everyone.",
-    image: "/kids-star.svg",
-    ref: "Luke 2:1-14",
-  },
-  {
-    id: "loaves",
-    title: "Jesus Feeds 5,000 People",
-    summary:
-      "A huge crowd was hungry and there was almost no food. A small boy shared his lunch — just 5 loaves of bread and 2 fish. Jesus took the food, said thank you to God, and broke it apart. Amazingly, everyone ate until they were full! There were even 12 baskets of leftovers. When we share what we have, God can do amazing things!",
-    verse: 'John 6:11 — "Jesus gave thanks and distributed the food to those who were seated."',
-    activity: "Pack a snack to share with a friend. Talk about how sharing shows God's love.",
-    image: "/kids-loaves.svg",
-    ref: "John 6:1-13",
-  },
-  {
-    id: "zacchaeus",
-    title: "Zacchaeus in the Tree",
-    summary:
-      "Zacchaeus was a short man who really wanted to see Jesus, but the crowd was in the way. So he climbed up a big tree! Jesus looked up, saw him, and said 'Come down — I want to come to your house today!' Zacchaeus was so happy he promised to give back money he had taken. Jesus loves everyone, even people who have made mistakes.",
-    verse: 'Luke 19:9 — "Today salvation has come to this house."',
-    activity: "Draw yourself in a tall tree. Write one way you will make things right with someone.",
-    image: "/kids-tree.svg",
-    ref: "Luke 19:1-10",
+      "God told an old man named Abraham to leave his home and travel to a new land — and Abraham went, even though he didn't know exactly where he was going! God promised Abraham he would have more descendants than the stars in the sky. Abraham and his wife Sarah were very old, but God kept His promise and gave them a son named Isaac. God always keeps His promises!",
+    verse:
+      'Genesis 15:6 — "Abram believed God, and he credited it to him as righteousness."',
+    activity:
+      "On a clear night, look up and count as many stars as you can. Thank God for His promises to you.",
+    emoji: "⭐",
+    ref: "Genesis 12:1–4; 15:5–6",
   },
   {
     id: "joseph",
     title: "Joseph's Colorful Coat",
+    testament: "OT",
+    book: "Genesis",
     summary:
-      "Joseph's father gave him a beautiful coat of many colors. His brothers were jealous and did mean things to him. Joseph had many hard days, but he never stopped trusting God. In the end, God used everything — even the painful parts — to help Joseph save many lives. God can turn hard situations into something good!",
-    verse: 'Genesis 50:20 — "You intended to harm me, but God intended it for good."',
-    activity: "Color a coat with as many colors as you can. Write the name of someone you will be extra kind to today.",
+      "Joseph's father gave him a beautiful coat of many colors. His brothers were jealous and did mean things to him. Joseph had many hard days, but he never stopped trusting God. God gave Joseph special dreams and helped him understand other people's dreams too. In the end, God used everything — even the painful parts — to help Joseph save many lives, including his whole family.",
+    verse:
+      'Genesis 50:20 — "You intended to harm me, but God intended it for good."',
+    activity:
+      "Color a coat with as many colors as you can. Write the name of someone you will be extra kind to today.",
+    emoji: "🎨",
     image: "/kids-coat.svg",
     ref: "Genesis 37:3",
   },
   {
-    id: "moses-sea",
-    title: "Moses Parts the Red Sea",
+    id: "baby-moses",
+    title: "Baby Moses in a Basket",
+    testament: "OT",
+    book: "Exodus",
     summary:
-      "Moses led God's people out of Egypt, but they reached the Red Sea with no way across. The army was chasing them! God told Moses to stretch out his hand — and God parted the water to make a dry path right through the sea! Everyone walked through safely. Nothing is too hard for God!",
-    verse: 'Exodus 14:21 — "The Lord drove the sea back by a strong east wind."',
-    activity: "Fill a bowl with water and move your hand through it. Thank God for making a way when things seem impossible.",
-    image: "/kids-waves.svg",
-    ref: "Exodus 14:21-22",
-  },
-  {
-    id: "creation",
-    title: "God Made the World",
-    summary:
-      "In the very beginning there was nothing — then God spoke and everything came to be! He made light, the sky, the oceans, the land, the sun, the moon, the stars, all the animals, and finally people. God made you too, and everything He made is very good. Whenever you see something beautiful, remember — God made it, and He made you!",
-    verse: 'Genesis 1:1 — "In the beginning God created the heavens and the earth."',
-    activity: "Go outside and find 3 amazing things God made. Draw them and write why each one is wonderful.",
-    image: "/kids-creation.svg",
-    ref: "Genesis 1:1-5",
+      "The king of Egypt was afraid of the Israelite babies, so he gave a terrible order. Moses's brave mother made a little basket-boat and hid baby Moses in the reeds by the river. The king's own daughter found Moses and took him home to raise him. God protected baby Moses and had a big plan for his life. God watches over each of us from the very beginning!",
+    verse:
+      'Exodus 2:2 — "She saw that he was a fine child, and she hid him for three months."',
+    activity:
+      "Make a little boat out of paper. Float it in a sink or tub and thank God for protecting you.",
+    emoji: "🧺",
+    ref: "Exodus 2:1–10",
   },
   {
     id: "burning-bush",
     title: "Moses and the Burning Bush",
+    testament: "OT",
+    book: "Exodus",
     summary:
-      "Moses was watching sheep when he saw something incredible — a bush on fire that was not burning up! God spoke from the bush and called Moses by name. God gave Moses an important job: go free God's people. Even when Moses felt scared and not good enough, God said 'I will be with you.' God calls each of us for special things too.",
-    verse: 'Exodus 3:4 — "God called to him from within the bush, \'Moses! Moses!\'"',
-    activity: "With a grown-up, light a candle. Watch the flame and talk about how God speaks to us in amazing ways.",
+      "Moses was watching sheep when he saw something incredible — a bush on fire that was not burning up! God spoke from the bush and called Moses by name. God gave Moses an important job: go free God's people from Egypt. Even when Moses felt scared and not good enough, God said 'I will be with you.' God calls each of us for special things too, and He always goes with us.",
+    verse:
+      'Exodus 3:4 — "God called to him from within the bush, \'Moses! Moses!\'"',
+    activity:
+      "With a grown-up, light a candle. Watch the flame and talk about how God speaks to you.",
+    emoji: "🔥",
     image: "/kids-fire.svg",
-    ref: "Exodus 3:1-14",
+    ref: "Exodus 3:1–14",
+  },
+  {
+    id: "plagues",
+    title: "God Sends the Plagues",
+    testament: "OT",
+    book: "Exodus",
+    summary:
+      "Pharaoh, the king of Egypt, refused to let God's people go. So God sent 10 amazing signs called plagues to show how powerful He is — things like frogs everywhere, darkness, and more. Each time, Pharaoh hardened his heart and said no. Finally, after the last plague, Pharaoh told the Israelites to leave. Nothing can stop God from keeping His promises!",
+    verse:
+      'Exodus 9:16 — "I raised you up for this very purpose, that I might show you my power."',
+    activity:
+      "Draw and count all 10 plagues. Talk about a time God helped your family through something hard.",
+    emoji: "🐸",
+    ref: "Exodus 7–11",
+  },
+  {
+    id: "red-sea",
+    title: "Moses Parts the Red Sea",
+    testament: "OT",
+    book: "Exodus",
+    summary:
+      "Moses led God's people out of Egypt, but they reached the Red Sea with no way across and the Egyptian army was chasing them! The people were very scared. God told Moses to stretch out his hand — and God parted the water to make a dry path right through the sea! Everyone walked through safely. Then the waters came back and stopped the army. Nothing is too hard for God!",
+    verse:
+      'Exodus 14:21 — "The Lord drove the sea back by a strong east wind."',
+    activity:
+      "Fill a bowl with water and move your hand through it. Thank God for making a way when things seem impossible.",
+    emoji: "🌊",
+    image: "/kids-waves.svg",
+    ref: "Exodus 14:21–22",
+  },
+  {
+    id: "manna",
+    title: "Manna from Heaven",
+    testament: "OT",
+    book: "Exodus",
+    summary:
+      "After the Israelites crossed the Red Sea, they were hungry in the desert. They were worried there was nothing to eat. But every single morning God sent special food called manna — like sweet thin flakes — right from the sky! And in the evening He sent quail to eat. God provided food every single day. God knows what you need and He will always provide.",
+    verse:
+      'Exodus 16:4 — "I will rain down bread from heaven for you."',
+    activity:
+      "Before every meal this week, say a thank-you prayer to God for your food.",
+    emoji: "🍞",
+    ref: "Exodus 16:1–18",
+  },
+  {
+    id: "ten-commandments",
+    title: "The Ten Commandments",
+    testament: "OT",
+    book: "Exodus",
+    summary:
+      "God called Moses up a big mountain called Sinai. God gave Moses 10 rules called the Ten Commandments, written on stone tablets. These rules help us love God and love each other — things like honor your parents, be honest, and rest on the Sabbath. God gave us these rules because He loves us and wants us to live good, happy lives.",
+    verse:
+      'Exodus 20:3 — "You shall have no other gods before me."',
+    activity:
+      "Try to memorize all 10 commandments. Write each one and draw a picture for it.",
+    emoji: "📜",
+    ref: "Exodus 20:1–17",
+  },
+  {
+    id: "jericho",
+    title: "Joshua and the Walls of Jericho",
+    testament: "OT",
+    book: "Joshua",
+    summary:
+      "God led His people to a new land, but the city of Jericho had tall, thick walls. God had a surprising plan — He told the Israelites to march around the city once a day for 6 days, and on the 7th day march around 7 times, then SHOUT! When they obeyed and shouted, the walls fell down flat! God's plans don't always look like what we expect, but they always work!",
+    verse:
+      'Joshua 1:9 — "Be strong and courageous. Do not be afraid... for the Lord your God will be with you."',
+    activity:
+      "March around your house 7 times, then shout! Talk about how God wants us to trust His plans even when they seem unusual.",
+    emoji: "🎺",
+    ref: "Joshua 6:1–20",
+  },
+  {
+    id: "ruth",
+    title: "Ruth's Kindness",
+    testament: "OT",
+    book: "Ruth",
+    summary:
+      "Ruth's husband died and she was far from her homeland. Her mother-in-law Naomi was also sad and alone. Ruth could have gone back to her own family, but instead she stayed with Naomi and said the most beautiful words: 'Where you go I will go.' Ruth worked hard to take care of Naomi. God blessed Ruth's kindness and she found a wonderful new family. Loyalty and kindness always honor God.",
+    verse:
+      'Ruth 1:16 — "Where you go I will go, and where you stay I will stay."',
+    activity:
+      "Write a note of kindness to someone who might be lonely. Deliver it today!",
+    emoji: "🌾",
+    ref: "Ruth 1–4",
+  },
+  {
+    id: "samuel",
+    title: "Samuel Hears God's Voice",
+    testament: "OT",
+    book: "1 Samuel",
+    summary:
+      "Samuel was a little boy who lived in God's temple and helped the priest Eli. One night Samuel heard a voice calling his name. He ran to Eli three times thinking Eli called him — but Eli didn't! Finally Eli realized it was God calling. He told Samuel: 'Next time say, Speak Lord, your servant is listening.' God loves to speak to people — even children. Are you listening for God's voice?",
+    verse:
+      '1 Samuel 3:10 — "Speak, for your servant is listening."',
+    activity:
+      "Sit quietly for 2 minutes. Ask God to speak to your heart. Write or draw what comes to mind.",
+    emoji: "👂",
+    ref: "1 Samuel 3:1–10",
+  },
+  {
+    id: "david",
+    title: "David and Goliath",
+    testament: "OT",
+    book: "1 Samuel",
+    summary:
+      "A giant named Goliath scared everyone — except a young shepherd boy named David. David trusted God and was not afraid. He picked up a small smooth stone, used his sling, and with God's help the giant fell down with just one stone! God can help us be brave even when things feel really big and scary. You don't have to be big and strong — you just need to trust God.",
+    verse:
+      '1 Samuel 17:45 — "I come to you in the name of the Lord of Hosts."',
+    activity:
+      "Find 5 stones outside. On paper, write something scary you are trusting God with.",
+    emoji: "🪨",
+    image: "/kids-david.svg",
+    ref: "1 Samuel 17:45–50",
+  },
+  {
+    id: "solomon",
+    title: "Solomon's Wisdom",
+    testament: "OT",
+    book: "1 Kings",
+    summary:
+      "When Solomon became the new king of Israel, God appeared to him and said: 'Ask for anything you want!' Instead of asking for money or power, Solomon asked for wisdom to lead God's people well. God was so pleased! He gave Solomon great wisdom AND riches too. When we put others first and ask for what is truly good, God blesses us even more than we could imagine.",
+    verse:
+      '1 Kings 3:9 — "So give your servant a discerning heart to govern your people."',
+    activity:
+      "Ask a parent or grandparent for their wisest piece of advice. Write it down and memorize it.",
+    emoji: "👑",
+    ref: "1 Kings 3:5–14",
+  },
+  {
+    id: "elijah",
+    title: "Elijah and the Fire from Heaven",
+    testament: "OT",
+    book: "1 Kings",
+    summary:
+      "The people of Israel started worshipping fake gods called Baal. God's prophet Elijah challenged the Baal prophets to a contest on Mount Carmel — each side would pray and the true God would send fire from heaven to burn the sacrifice. Baal's prophets prayed all day and nothing happened. Then Elijah prayed ONE simple prayer to God — and fire came roaring down! Everyone fell down and said, 'The Lord, He is God!'",
+    verse:
+      '1 Kings 18:39 — "The Lord, he is God! The Lord, he is God!"',
+    activity:
+      "Draw fire coming from the sky. Thank God that He is the one true God and He hears your prayers.",
+    emoji: "⚡",
+    ref: "1 Kings 18:20–39",
+  },
+  {
+    id: "esther",
+    title: "Esther Saves Her People",
+    testament: "OT",
+    book: "Esther",
+    summary:
+      "Esther was a young Jewish woman who became queen of Persia. A wicked man named Haman made a plan to hurt all the Jewish people. Esther's uncle Mordecai told her she needed to speak up — maybe she had become queen for exactly this moment! Esther was scared, but she was brave. She went to the king, spoke up, and saved her whole people. God places us exactly where we need to be!",
+    verse:
+      'Esther 4:14 — "Who knows? Perhaps you were made queen for just such a time as this."',
+    activity:
+      "Think of a time you need to be brave and speak up for someone. Write a prayer asking God for courage like Esther.",
+    emoji: "👸",
+    ref: "Esther 4–7",
+  },
+  {
+    id: "daniel-furnace",
+    title: "The Fiery Furnace",
+    testament: "OT",
+    book: "Daniel",
+    summary:
+      "King Nebuchadnezzar made a huge gold statue and ordered everyone to bow down to it. Three of Daniel's friends — Shadrach, Meshach, and Abednego — refused because they only worshipped God. The angry king threw them into a furnace so hot it hurt the soldiers who threw them in. But inside the fire, the king saw FOUR people walking around unhurt! God had sent an angel to protect them. They came out without even the smell of smoke on them!",
+    verse:
+      'Daniel 3:25 — "I see four men walking around in the fire, unharmed!"',
+    activity:
+      "Write the names Shadrach, Meshach, and Abednego on your fingers. Practice saying them! Talk about standing up for what is right.",
+    emoji: "🔥",
+    ref: "Daniel 3:1–28",
+  },
+  {
+    id: "daniel",
+    title: "Daniel and the Lions",
+    testament: "OT",
+    book: "Daniel",
+    summary:
+      "Daniel loved God and prayed every single day, three times a day. Some jealous men made a law that no one could pray to anyone but the king. Daniel heard the new law but kept praying anyway! He was thrown into a den of hungry lions. But God sent an angel to shut the lions' mouths. Daniel was not hurt at all. In the morning the king was so happy and amazed — he told everyone to respect Daniel's God!",
+    verse:
+      'Daniel 6:22 — "My God sent his angel and shut the lions\' mouths."',
+    activity:
+      "Draw Daniel safe in the lion's den with the angel. Write a thank-you prayer to God for protecting you.",
+    emoji: "🦁",
+    image: "/kids-lion.svg",
+    ref: "Daniel 6:16–23",
+  },
+  {
+    id: "jonah",
+    title: "Jonah and the Big Fish",
+    testament: "OT",
+    book: "Jonah",
+    summary:
+      "God asked Jonah to go help a city called Nineveh, but Jonah ran away on a boat. A big storm came, and Jonah was swallowed by a giant fish! Inside the fish, Jonah prayed and said sorry to God. After three days, the fish spit Jonah out onto the beach. Jonah obeyed God, went to Nineveh, and the whole city turned back to God! It is never too late to say sorry and do the right thing.",
+    verse:
+      'Jonah 2:1 — "Then Jonah prayed to the Lord his God from inside the fish."',
+    activity:
+      "Draw a huge fish with Jonah inside. Write one thing you will choose to obey God in this week.",
+    emoji: "🐋",
+    image: "/kids-whale.svg",
+    ref: "Jonah 1:17",
+  },
+
+  // ── NEW TESTAMENT ──────────────────────────────────────────────────────────
+  {
+    id: "angel-mary",
+    title: "The Angel Visits Mary",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "A young woman named Mary was going about her ordinary day when an angel named Gabriel suddenly appeared! The angel told Mary something amazing — she would have a very special baby, God's own Son, and His name would be Jesus. Mary was surprised and a little scared, but she trusted God and said yes. God chose an ordinary, faithful young woman for the most extraordinary job ever!",
+    verse:
+      'Luke 1:38 — "I am the Lord\'s servant. May your word to me be fulfilled."',
+    activity:
+      "Draw an angel with bright wings. Write one way you will say 'yes' to God this week.",
+    emoji: "👼",
+    ref: "Luke 1:26–38",
+  },
+  {
+    id: "jesus-birth",
+    title: "Baby Jesus Is Born",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "God sent His Son Jesus to earth as a tiny baby! Mary and Joseph traveled a long way to Bethlehem, but every inn was full. Jesus was born in a simple stable with the animals. Angels lit up the sky and sang to shepherds in the fields: 'Good news! A Savior is born!' The shepherds ran to see baby Jesus. Wise men followed a star for miles and brought Him gifts. It was the most special birthday in all of history!",
+    verse:
+      'Luke 2:11 — "A Savior has been born to you; he is the Messiah, the Lord."',
+    activity:
+      "Make a paper star and hang it up to remember that Jesus came for everyone!",
+    emoji: "⭐",
+    image: "/kids-star.svg",
+    ref: "Luke 2:1–14",
+  },
+  {
+    id: "wise-men",
+    title: "Wise Men Follow the Star",
+    testament: "NT",
+    book: "Matthew",
+    summary:
+      "Far away in the east, some very wise scholars saw a special new star in the sky. They knew it meant a great king had been born. They packed up and traveled a very long way, following the star for months! When they found baby Jesus they were filled with joy. They bowed down and gave Him gifts of gold, frankincense, and myrrh. These wise men show us that it is worth traveling far and giving our best to Jesus!",
+    verse:
+      'Matthew 2:11 — "They bowed down and worshipped him... they presented him with gifts."',
+    activity:
+      "Look up what gold, frankincense, and myrrh are. What gift would you give Jesus today?",
+    emoji: "🌟",
+    ref: "Matthew 2:1–12",
+  },
+  {
+    id: "baptism",
+    title: "Jesus Is Baptized",
+    testament: "NT",
+    book: "Matthew",
+    summary:
+      "Jesus came to a man named John who was baptizing people in the Jordan River. Even though Jesus had done nothing wrong, He wanted to be baptized to show us the way. When Jesus came out of the water, the sky opened up! A dove came down from heaven, and God's voice said: 'This is my beloved Son — I am so pleased with Him!' God was proud of Jesus. God is proud when we follow Jesus too.",
+    verse:
+      'Matthew 3:17 — "This is my Son, whom I love; with him I am well pleased."',
+    activity:
+      "Draw a dove and a river. Write 3 things that make you want to follow Jesus.",
+    emoji: "🕊️",
+    ref: "Matthew 3:13–17",
+  },
+  {
+    id: "disciples",
+    title: "Jesus Calls His Disciples",
+    testament: "NT",
+    book: "Mark",
+    summary:
+      "Jesus was walking by the Sea of Galilee when He saw some fishermen — brothers Simon and Andrew — throwing their nets. He called out: 'Follow me, and I will make you fishers of people!' They left their nets right away and followed Him. Jesus called 12 disciples altogether — ordinary people like fishermen and tax collectors. Jesus chose regular people, and He chooses us too!",
+    verse:
+      'Mark 1:17 — "Come, follow me, and I will send you out to fish for people."',
+    activity:
+      "Write the names of Jesus's 12 disciples. Circle the ones you know stories about.",
+    emoji: "🎣",
+    ref: "Mark 1:16–20",
+  },
+  {
+    id: "lords-prayer",
+    title: "The Lord's Prayer",
+    testament: "NT",
+    book: "Matthew",
+    summary:
+      "The disciples asked Jesus how to pray. Jesus taught them a perfect prayer — we call it the Lord's Prayer. It starts by praising God and asking for His kingdom to come, then asks for daily bread, forgiveness, and protection from evil. This prayer shows us that we can talk to God about everything: what we need, how we feel, and how to forgive others. Prayer is simply talking to God like a friend.",
+    verse:
+      'Matthew 6:9 — "Our Father in heaven, hallowed be your name."',
+    activity:
+      "Learn the Lord's Prayer by heart. Say it with your family tonight.",
+    emoji: "🙏",
+    ref: "Matthew 6:9–13",
+  },
+  {
+    id: "storm",
+    title: "Jesus Calms the Storm",
+    testament: "NT",
+    book: "Mark",
+    summary:
+      "Jesus and His disciples were crossing a lake in a boat when a wild storm hit. Giant waves crashed over the boat — the disciples were terrified! Jesus was asleep in the back of the boat. They woke Him up shouting, 'Don't you care that we're about to sink?' Jesus stood up and said to the storm: 'Peace! Be still!' The wind stopped. The sea went calm. Even the wind and waves obey Jesus!",
+    verse:
+      'Mark 4:39 — "Quiet! Be still! And the wind died down and it was completely calm."',
+    activity:
+      "Make wave sounds with a bowl of water, then still it with your hand. Remember Jesus has power over every storm in your life.",
+    emoji: "⛵",
+    ref: "Mark 4:35–41",
+  },
+  {
+    id: "good-samaritan",
+    title: "The Good Samaritan",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "Jesus told a story about a man who was robbed and left hurt on the road. Several important people walked right past and did not help. But then a Samaritan — someone from a different group that Jews often disliked — stopped, helped clean the man's wounds, put him on his donkey, and paid for him to stay at an inn. Jesus asked: 'Who was a neighbor?' Being kind doesn't ask if someone is like you first.",
+    verse:
+      'Luke 10:36–37 — "Which of these was a neighbor to the man?... The one who had mercy."',
+    activity:
+      "Do one kind thing for someone this week who doesn't expect it. Write about what happened.",
+    emoji: "🤝",
+    ref: "Luke 10:30–37",
+  },
+  {
+    id: "prodigal",
+    title: "The Prodigal Son",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "Jesus told a story about a son who asked his father for his inheritance and ran away to live wildly. He wasted all his money, ended up starving and feeding pigs. He decided to go home and say sorry. While he was still far away, his father saw him coming and RAN to him! He hugged his son and threw a big party. This is just like God — He is always watching for us, ready to run and welcome us home.",
+    verse:
+      'Luke 15:20 — "While he was still a long way off, his father saw him and ran to him."',
+    activity:
+      "Draw the father running to meet his son. Thank God that He always welcomes you back, no matter what.",
+    emoji: "🏠",
+    ref: "Luke 15:11–32",
+  },
+  {
+    id: "loaves",
+    title: "Jesus Feeds 5,000 People",
+    testament: "NT",
+    book: "John",
+    summary:
+      "A huge crowd was hungry and there was almost no food. A small boy shared his lunch — just 5 loaves of bread and 2 fish. Jesus took the food, said thank you to God, and gave it out. Amazingly, everyone ate until they were completely full! There were even 12 baskets of leftovers! When we share what we have, even if it seems very little, God can do miraculous things with it.",
+    verse:
+      'John 6:11 — "Jesus gave thanks and distributed the food to those who were seated."',
+    activity:
+      "Pack a snack to share with a friend. Talk about how sharing shows God's love.",
+    emoji: "🐟",
+    image: "/kids-loaves.svg",
+    ref: "John 6:1–13",
+  },
+  {
+    id: "walk-water",
+    title: "Jesus Walks on Water",
+    testament: "NT",
+    book: "Matthew",
+    summary:
+      "The disciples were in a boat at night when they saw someone walking toward them on the water — it was Jesus! Peter called out: 'If it's you, tell me to come!' Jesus said, 'Come!' Peter climbed out of the boat and started walking on water! But when he looked at the big waves he got scared and started to sink. Jesus reached out and caught him. When we keep our eyes on Jesus, we can do impossible things!",
+    verse:
+      'Matthew 14:29–30 — "Come," [Jesus] said. Then Peter got down out of the boat and walked on water.',
+    activity:
+      "Draw Peter walking on the water with Jesus holding his hand. Write one thing you will trust Jesus with this week.",
+    emoji: "🌊",
+    ref: "Matthew 14:25–31",
+  },
+  {
+    id: "zacchaeus",
+    title: "Zacchaeus in the Tree",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "Zacchaeus was a short man who really wanted to see Jesus, but the crowd was in the way. So he climbed up a sycamore tree! Jesus looked up, saw him, and called out: 'Zacchaeus, come down — I want to come to your house today!' Zacchaeus was so happy he promised to give back money he had taken from people. Jesus loved someone everyone else avoided. Jesus loves everyone, even people who have made mistakes.",
+    verse:
+      'Luke 19:9 — "Today salvation has come to this house."',
+    activity:
+      "Draw yourself in a tall tree. Write one way you will make things right with someone.",
+    emoji: "🌳",
+    image: "/kids-tree.svg",
+    ref: "Luke 19:1–10",
   },
   {
     id: "good-shepherd",
     title: "The Good Shepherd",
+    testament: "NT",
+    book: "John",
     summary:
-      "Jesus said He is like a shepherd who cares for every sheep. A good shepherd knows each sheep by name and goes out to find one if it gets lost. Jesus is our Good Shepherd — He knows your name, He loves you, and He will never leave you. You are never alone because Jesus is always with you.",
-    verse: 'John 10:14 — "I am the good shepherd; I know my sheep and my sheep know me."',
-    activity: "Draw a sheep with your name on it. Remember that Jesus knows your name and loves you every day.",
+      "Jesus said He is like a shepherd who loves and cares for every sheep. A good shepherd knows each sheep by name and goes out to find one if it gets lost — leaving the 99 others to find the one. Jesus is our Good Shepherd — He knows your name, He loves you, and He will never leave you. You are so important to Jesus that He would leave everything to find you. You are never alone!",
+    verse:
+      'John 10:14 — "I am the good shepherd; I know my sheep and my sheep know me."',
+    activity:
+      "Draw a sheep with your name on it. Remember Jesus knows your name and loves you every day.",
+    emoji: "🐑",
     image: "/kids-shepherd.svg",
-    ref: "John 10:11-16",
+    ref: "John 10:11–16",
+  },
+  {
+    id: "lazarus",
+    title: "Lazarus Lives Again!",
+    testament: "NT",
+    book: "John",
+    summary:
+      "Jesus had a good friend named Lazarus who got very sick and died. By the time Jesus arrived, Lazarus had been in the tomb for four days. Lazarus's sisters Mary and Martha were heartbroken. Jesus wept with them — He cried because He loved them. Then Jesus went to the tomb and called out: 'Lazarus, come out!' And Lazarus walked out alive! Jesus has power over death itself, and He feels our sadness with us.",
+    verse:
+      'John 11:35 — "Jesus wept."',
+    activity:
+      "Think of a time you were very sad. Write a prayer telling Jesus how you felt. Remember He cares and He has power to help.",
+    emoji: "✨",
+    ref: "John 11:1–44",
+  },
+  {
+    id: "palm-sunday",
+    title: "Jesus Rides into Jerusalem",
+    testament: "NT",
+    book: "Matthew",
+    summary:
+      "Jesus rode into the city of Jerusalem on a young donkey. When the crowd saw Him coming, they went wild with joy! They waved palm branches and spread their coats on the road. They shouted 'Hosanna! Blessed is He who comes in the name of the Lord!' They were welcoming Jesus as their King. This day is called Palm Sunday. Every time we praise Jesus we are joining that joyful crowd!",
+    verse:
+      'Matthew 21:9 — "Hosanna to the Son of David! Blessed is he who comes in the name of the Lord!"',
+    activity:
+      "Make a paper palm branch and wave it. Shout 'Hosanna!' and celebrate that Jesus is King!",
+    emoji: "🌿",
+    ref: "Matthew 21:1–11",
+  },
+  {
+    id: "easter",
+    title: "Jesus Is Alive! 🌅",
+    testament: "NT",
+    book: "Luke",
+    summary:
+      "Jesus died on the cross to take away all our sins so we could be forgiven and know God. But that is not the end of the story! Three days later, some women went to Jesus's tomb early in the morning and found it EMPTY. Angels appeared and told them: 'He is not here — He is risen!' Jesus appeared to His friends and showed them His hands. Jesus conquered death! Because Jesus is alive, we have hope forever!",
+    verse:
+      'Luke 24:6 — "He is not here; he has risen! Remember how he told you..."',
+    activity:
+      "Roll a stone (or ball) away from a door and shout: 'He is risen!' Tell someone the Easter story today.",
+    emoji: "🌅",
+    ref: "Luke 24:1–8",
+  },
+  {
+    id: "pentecost",
+    title: "The Holy Spirit Comes",
+    testament: "NT",
+    book: "Acts",
+    summary:
+      "After Jesus went back to heaven, His disciples were all together praying in a room. Suddenly a sound like a rushing wind filled the whole house, and something like little flames of fire appeared over each person's head! They were filled with the Holy Spirit — God's power living inside them. They went out boldly and told everyone about Jesus. The Holy Spirit still lives in everyone who believes in Jesus today — including you!",
+    verse:
+      'Acts 2:4 — "All of them were filled with the Holy Spirit."',
+    activity:
+      "Draw each disciple with a little flame above their head. Thank God that His Spirit lives in you too!",
+    emoji: "🔥",
+    ref: "Acts 2:1–4",
+  },
+  {
+    id: "paul",
+    title: "Paul Meets Jesus",
+    testament: "NT",
+    book: "Acts",
+    summary:
+      "A man named Saul was very mean to Christians and tried to stop them. One day on the road to Damascus a blinding light flashed from the sky and Saul fell down. He heard Jesus's voice saying: 'Saul, why are you hurting me?' Saul was blind for 3 days. A follower of Jesus came and prayed for him, and Saul could see again. Saul changed his name to Paul and became one of the greatest missionaries ever! No one is too far from God's reach.",
+    verse:
+      'Acts 9:5 — "Who are you, Lord?" Saul asked. "I am Jesus, whom you are persecuting."',
+    activity:
+      "Write the name SAUL → PAUL. Talk about how God can change anyone's heart, including yours.",
+    emoji: "💫",
+    ref: "Acts 9:1–20",
+  },
+  {
+    id: "armor-god",
+    title: "The Armor of God",
+    testament: "NT",
+    book: "Ephesians",
+    summary:
+      "The apostle Paul wrote that God gives us special armor so we can stand strong! The Belt of Truth — always be honest. The Breastplate of Righteousness — do what is right. The Shoes of Peace — share good news. The Shield of Faith — trust God. The Helmet of Salvation — remember you are saved. The Sword of the Spirit — know your Bible! Put on God's armor every single day!",
+    verse:
+      'Ephesians 6:11 — "Put on the full armor of God so that you can take your stand."',
+    activity:
+      "Draw a knight wearing all 6 pieces of God's armor. Label each one. Which piece do you need most today?",
+    emoji: "🛡️",
+    ref: "Ephesians 6:10–18",
   },
   {
     id: "love",
     title: "God's Big Love",
+    testament: "NT",
+    book: "John",
     summary:
-      "The most important thing in the whole Bible is that God loves you! God loved the world so much that He sent His only Son Jesus for us. No matter what you do, no matter how you feel, nothing can separate you from God's love. His love is bigger than the sky, deeper than the ocean, and it lasts forever and ever.",
-    verse: 'John 3:16 — "For God so loved the world that he gave his one and only Son."',
-    activity: "Make a love card for someone in your family. On the back write: 'God loves you and so do I!'",
+      "The most important thing in the whole Bible is that God loves you! God loved the world so much that He gave His only Son Jesus for us. No matter what you do, no matter how you feel, nothing can separate you from God's love. His love is bigger than the sky, deeper than the ocean, and stronger than anything. And God's love lasts forever and ever — without end!",
+    verse:
+      'John 3:16 — "For God so loved the world that he gave his one and only Son."',
+    activity:
+      "Make a love card for someone in your family. On the back write: 'God loves you and so do I!'",
+    emoji: "❤️",
     image: "/kids-heart.svg",
     ref: "John 3:16",
   },
   {
     id: "memory",
     title: "Memory Verse Challenge",
+    testament: "NT",
+    book: "Psalms",
     summary:
-      "The Bible is full of verses that help us every day. When we remember God's Word it is like a light that guides us when things feel dark or confusing. This week's challenge: pick a verse, say it out loud, write it down, and try to remember it all week. You can do it — God will help you!",
-    verse: 'Psalm 119:105 — "Your word is a lamp to my feet and a light to my path."',
-    activity: "Write your favorite Bible verse on a card. Decorate it and put it somewhere you will see it every morning.",
+      "The Bible is full of verses that help us every single day! When we remember God's Word, it is like a lamp that lights up the path in front of us when things feel dark or confusing. This week's challenge: pick one of the verses below, say it out loud 3 times, write it on a card, and try to remember it all week. You can do it — God will help you!",
+    verse:
+      'Psalm 119:105 — "Your word is a lamp to my feet and a light to my path."',
+    activity:
+      "Write your favorite Bible verse on a card. Decorate it and put it somewhere you will see it every morning.",
+    emoji: "📖",
     image: "/kids-book.svg",
     ref: "Psalm 119:105",
   },
   {
     id: "thankful",
     title: "A Thankful Heart",
+    testament: "NT",
+    book: "Psalms",
     summary:
-      "Every single day is a gift from God! The Bible tells us to be thankful in everything. When we wake up, when we eat, when we play, when we see something beautiful — we can say thank you to God. A thankful heart is a happy heart. Let's practice finding something to be grateful for every single day!",
-    verse: 'Psalm 118:24 — "This is the day that the Lord has made; let us rejoice and be glad in it."',
-    activity: "Start a thankfulness journal. Write or draw 3 things you are thankful for today. Do it again tomorrow!",
+      "Every single day is a gift from God! The Bible tells us to give thanks in everything. When we wake up, when we eat, when we play, when we see something beautiful — we can say thank you to God. A thankful heart sees the good things all around. Let's practice finding something to be grateful for every single day — because there is always something to thank God for!",
+    verse:
+      'Psalm 118:24 — "This is the day that the Lord has made; let us rejoice and be glad in it."',
+    activity:
+      "Start a thankfulness journal. Write or draw 3 things you are thankful for today. Do it again tomorrow!",
+    emoji: "🌻",
     image: "/kids-sun.svg",
     ref: "Psalm 118:24",
   },
 ];
 
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+type QuizQ = {
+  question: string;
+  options: string[];
+  answer: number;
+  fun: string;
+};
+
+const quizQuestions: QuizQ[] = [
+  {
+    question: "How many days did it take God to create the world?",
+    options: ["5 days", "6 days", "7 days", "10 days"],
+    answer: 1,
+    fun: "God created everything in 6 days and rested on the 7th — that's why we have a day of rest each week!",
+  },
+  {
+    question: "What animal tricked Eve in the Garden of Eden?",
+    options: ["A lion", "A bird", "A serpent (snake)", "A fox"],
+    answer: 2,
+    fun: "The serpent was sneaky and told Eve the fruit would make her wise — but obeying God is the real wisdom!",
+  },
+  {
+    question: "In what city was Jesus born?",
+    options: ["Jerusalem", "Nazareth", "Bethlehem", "Jericho"],
+    answer: 2,
+    fun: "The prophet Micah predicted 700 years earlier that the Messiah would be born in Bethlehem — and he was!",
+  },
+  {
+    question: "How many stones did David use to defeat Goliath?",
+    options: ["5 stones", "3 stones", "1 stone", "10 stones"],
+    answer: 2,
+    fun: "David picked up 5 smooth stones but only needed 1. With God's help, one is always enough!",
+  },
+  {
+    question: "Who was swallowed by a big fish?",
+    options: ["Moses", "Jonah", "Elijah", "Noah"],
+    answer: 1,
+    fun: "Jonah was in the fish for 3 days and 3 nights — just like Jesus was in the tomb for 3 days before rising!",
+  },
+  {
+    question: "What did God send from the sky to feed the Israelites in the desert?",
+    options: ["Fruit", "Grain", "Manna and quail", "Bread and honey"],
+    answer: 2,
+    fun: "Manna was small, white, and tasted like honey wafers. God sent it fresh every single morning for 40 years!",
+  },
+  {
+    question: "How many commandments did God give Moses?",
+    options: ["5", "7", "10", "12"],
+    answer: 2,
+    fun: "The 10 Commandments are still a great guide for life today — love God and love people!",
+  },
+  {
+    question: "What did baby Jesus sleep in?",
+    options: ["A crib", "A manger (feeding trough)", "A basket", "A tent"],
+    answer: 1,
+    fun: "A manger is a box that holds hay for animals to eat. Jesus came to feed our hearts, just like a manger feeds hungry animals!",
+  },
+  {
+    question: "How many loaves of bread were used to feed 5,000 people?",
+    options: ["12 loaves", "2 loaves", "5 loaves", "100 loaves"],
+    answer: 2,
+    fun: "A small boy shared his lunch of 5 loaves and 2 fish. Jesus multiplied it to feed thousands! Generosity + Jesus = miracles!",
+  },
+  {
+    question: "Who climbed a tree to see Jesus?",
+    options: ["Matthew", "Zacchaeus", "Peter", "Nicodemus"],
+    answer: 1,
+    fun: "Zacchaeus was very short! He climbed a sycamore tree. Jesus noticed him and called him by name — Jesus knows your name too!",
+  },
+  {
+    question: "What happened when Jesus said 'Peace, be still' to the storm?",
+    options: [
+      "The rain got worse",
+      "The disciples fell asleep",
+      "The wind and waves calmed immediately",
+      "Nothing happened",
+    ],
+    answer: 2,
+    fun: "Even nature obeys Jesus! The disciples asked: 'Who is this that even the wind and waves obey Him?'",
+  },
+  {
+    question: "What is the shortest verse in the Bible?",
+    options: [
+      '"God is good."',
+      '"Jesus wept."',
+      '"Pray always."',
+      '"Amen."',
+    ],
+    answer: 1,
+    fun: '"Jesus wept" (John 11:35) shows us that Jesus felt real sadness with His friends. He cares about your feelings too!',
+  },
+];
+
+// ── MEMORY VERSES ─────────────────────────────────────────────────────────────
+type VerseTheme = { theme: string; emoji: string; color: string; verses: { ref: string; text: string }[] };
+
+const verseThemes: VerseTheme[] = [
+  {
+    theme: "God's Love",
+    emoji: "❤️",
+    color: "#e84060",
+    verses: [
+      { ref: "John 3:16", text: "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." },
+      { ref: "Romans 8:38–39", text: "Neither death nor life... nor anything else in all creation, will be able to separate us from the love of God that is in Christ Jesus our Lord." },
+      { ref: "1 John 4:7", text: "Dear friends, let us love one another, for love comes from God." },
+    ],
+  },
+  {
+    theme: "Courage & Trust",
+    emoji: "🦁",
+    color: "#e86030",
+    verses: [
+      { ref: "Joshua 1:9", text: "Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go." },
+      { ref: "Psalm 56:3", text: "When I am afraid, I put my trust in you." },
+      { ref: "Philippians 4:13", text: "I can do all this through him who gives me strength." },
+    ],
+  },
+  {
+    theme: "Praise & Joy",
+    emoji: "🎉",
+    color: "#f5a030",
+    verses: [
+      { ref: "Psalm 118:24", text: "This is the day that the Lord has made; let us rejoice and be glad in it." },
+      { ref: "Psalm 150:6", text: "Let everything that has breath praise the Lord. Praise the Lord!" },
+      { ref: "Philippians 4:4", text: "Rejoice in the Lord always. I will say it again: Rejoice!" },
+    ],
+  },
+  {
+    theme: "Wisdom & Truth",
+    emoji: "📖",
+    color: "#2f7a3b",
+    verses: [
+      { ref: "Proverbs 3:5–6", text: "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him." },
+      { ref: "Psalm 119:105", text: "Your word is a lamp to my feet and a light to my path." },
+      { ref: "James 1:5", text: "If any of you lacks wisdom, you should ask God, who gives generously to all without finding fault." },
+    ],
+  },
+  {
+    theme: "Kindness & Others",
+    emoji: "🤝",
+    color: "#4a90d9",
+    verses: [
+      { ref: "Ephesians 4:32", text: "Be kind and compassionate to one another, forgiving each other, just as in Christ God forgave you." },
+      { ref: "Matthew 22:39", text: "Love your neighbor as yourself." },
+      { ref: "Colossians 3:20", text: "Children, obey your parents in everything, for this pleases the Lord." },
+    ],
+  },
+];
+
+// ── FUN ZONE ──────────────────────────────────────────────────────────────────
+const funActivities = [
+  { emoji: "✏️", title: "Drawing Challenge", desc: "Draw your favorite Bible hero from today's story. Add a speech bubble with their most important words." },
+  { emoji: "🎭", title: "Act It Out!", desc: "Pick a Bible story and act it out with your family or friends. Who wants to be which character?" },
+  { emoji: "🔍", title: "Bible Detective", desc: "Find 5 animals mentioned in the Bible. Hint: look in Genesis, Jonah, and Daniel!" },
+  { emoji: "📝", title: "Prayer Journal", desc: "Write down 3 things to thank God for, 2 things to ask God for, and 1 person to pray for by name." },
+  { emoji: "🎵", title: "Sing It!", desc: 'Make up a simple song about your favorite Bible verse. Even if it\'s silly — God loves joyful music!' },
+  { emoji: "🌍", title: "Map Explorer", desc: "Find Israel on a map. Can you find Bethlehem, Jerusalem, the Jordan River, and the Dead Sea?" },
+  { emoji: "🤔", title: "Wonder Questions", desc: "Think about this: Why did Jesus use stories to teach? What's your favorite parable and why?" },
+  { emoji: "💌", title: "Letter to God", desc: "Write a letter to God telling Him about your day, your worries, your dreams, and your thanks." },
+];
+
+// ── TYPES ─────────────────────────────────────────────────────────────────────
+type Tab = "stories" | "quiz" | "verses" | "fun";
+type Testament = "all" | "OT" | "NT";
+
+// ── COMPONENT ─────────────────────────────────────────────────────────────────
 function KidsPageInner() {
   const searchParams = useSearchParams();
   const storyId = searchParams.get("story");
+
+  const [activeTab, setActiveTab] = useState<Tab>("stories");
+  const [testament, setTestament] = useState<Testament>("all");
+
+  // Quiz state
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [quizDone, setQuizDone] = useState(false);
+
   const activeStory = useMemo(() => {
     const fallback = stories[0];
-    if (!storyId) {
-      return fallback;
-    }
-    return stories.find((item) => item.id === storyId) || fallback;
+    if (!storyId) return fallback;
+    return stories.find((s) => s.id === storyId) || fallback;
   }, [storyId]);
-  const [translation, setTranslation] = useState("bbe"); // Bible in Basic English — simpler words for kids
-  const [passage, setPassage] = useState("");
-  const [verses, setVerses] = useState<{ verse: number; text: string }[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    let isActive = true;
+  const filteredStories = useMemo(() => {
+    if (testament === "all") return stories;
+    return stories.filter((s) => s.testament === testament);
+  }, [testament]);
 
-    const loadPassage = async () => {
-      setStatus("loading");
-      setErrorMessage("");
-      setPassage("");
-      setVerses([]);
+  const q = quizQuestions[quizIndex];
 
-      try {
-        const response = await fetch(
-          `/api/bible?ref=${encodeURIComponent(
-            activeStory.ref
-          )}&translation=${translation}`,
-          { cache: "no-store" }
-        );
-        const data = await response.json();
+  function handleAnswer(i: number) {
+    if (selected !== null) return;
+    setSelected(i);
+    if (i === q.answer) setScore((s) => s + 1);
+  }
 
-        if (!response.ok) {
-          throw new Error(data?.error || "Unable to load passage.");
-        }
+  function nextQuestion() {
+    if (quizIndex + 1 >= quizQuestions.length) {
+      setQuizDone(true);
+    } else {
+      setQuizIndex((i) => i + 1);
+      setSelected(null);
+    }
+  }
 
-        if (!isActive) {
-          return;
-        }
+  function resetQuiz() {
+    setQuizIndex(0);
+    setSelected(null);
+    setScore(0);
+    setQuizDone(false);
+  }
 
-        if (Array.isArray(data?.verses)) {
-          setVerses(
-            data.verses.map((item: { verse: number; text: string }) => ({
-              verse: item.verse,
-              text: item.text,
-            }))
-          );
-          setPassage("");
-        } else if (typeof data?.text === "string") {
-          setPassage(data.text);
-          setVerses([]);
-        }
-        setStatus("idle");
-      } catch (error) {
-        if (!isActive) {
-          return;
-        }
-        setStatus("error");
-        setErrorMessage(
-          error instanceof Error ? error.message : "Unable to load passage."
-        );
-      }
-    };
-
-    void loadPassage();
-
-    return () => {
-      isActive = false;
-    };
-  }, [activeStory.ref, translation]);
+  const tabs: { id: Tab; label: string; emoji: string }[] = [
+    { id: "stories", label: "Bible Stories", emoji: "📖" },
+    { id: "quiz", label: "Bible Quiz", emoji: "🧠" },
+    { id: "verses", label: "Memory Verses", emoji: "⭐" },
+    { id: "fun", label: "Fun Zone", emoji: "🎉" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#f6f2ea] text-[#2b241d]">
-      <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,246,230,0.95),_transparent_55%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.55),_transparent_65%)] opacity-70" />
-        <div className="pointer-events-none absolute -left-24 top-16 h-64 w-64 rounded-full bg-[#e8d3b0] opacity-40 blur-3xl" />
-        <div className="pointer-events-none absolute right-8 top-12 h-72 w-72 rounded-full bg-[#cbd7e7] opacity-50 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-[#f0e1c8] opacity-40 blur-3xl" />
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-14 md:px-10">
-          <header className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.45em] text-[#8b6a3d]">
-                Kids Bible
-              </p>
-              <h1 className="text-4xl font-semibold text-[#2f3b52] md:text-5xl">
-                Kids Bible Corner
-              </h1>
-            </div>
-            <a
-              href="/"
-              className="rounded-full border border-[#cbb89a] bg-white px-4 py-2 text-xs font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+      {/* Background blobs */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,246,230,0.9),_transparent_60%)]" />
+      <div className="pointer-events-none fixed -left-24 top-16 h-64 w-64 rounded-full bg-[#e8d3b0] opacity-30 blur-3xl" />
+      <div className="pointer-events-none fixed right-8 top-12 h-72 w-72 rounded-full bg-[#cbd7e7] opacity-40 blur-3xl" />
+
+      <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-8 px-5 py-10 md:px-10">
+
+        {/* Header */}
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.45em] text-[#8b6a3d]">Halo List</p>
+            <h1 className="mt-1 text-4xl font-semibold text-[#2f3b52] md:text-5xl">
+              Kids Bible Corner
+            </h1>
+            <p className="mt-2 text-sm text-[#7a6b5a]">
+              {stories.length} stories • The whole Bible, just for kids! 🌟
+            </p>
+          </div>
+          <a
+            href="/"
+            className="rounded-full border border-[#cbb89a] bg-white px-4 py-2 text-sm font-semibold text-[#2b241d] transition hover:border-[#b4894f]"
+          >
+            ← Back to reader
+          </a>
+        </header>
+
+        {/* Tab navigation */}
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                activeTab === tab.id
+                  ? "bg-[#2f3b52] text-white shadow-md"
+                  : "bg-white text-[#2b241d] border border-[#e7dfd3] hover:border-[#b4894f]"
+              }`}
             >
-              Back to reader
-            </a>
-          </header>
+              {tab.emoji} {tab.label}
+            </button>
+          ))}
+        </div>
 
-          <section className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
-            <div className="rounded-[28px] bg-white/90 p-6 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
-              <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
-                Today's story
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold text-[#2b241d]">
-                {activeStory.title}
-              </h2>
-              <p className="mt-3 text-sm text-[#5a534b]">
-                {activeStory.summary}
-              </p>
-              <div className="mt-4 rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                  Memory verse
+        {/* ── STORIES TAB ── */}
+        {activeTab === "stories" && (
+          <>
+            {/* Featured story card */}
+            <section className="grid gap-5 md:grid-cols-2">
+              {/* Illustration */}
+              <div className="flex flex-col items-center justify-center rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(62,54,41,0.10)]">
+                {activeStory.image ? (
+                  <img
+                    src={activeStory.image}
+                    alt={`${activeStory.title} illustration`}
+                    className="h-52 w-full object-contain"
+                  />
+                ) : (
+                  <div className="flex h-52 w-full items-center justify-center text-8xl">
+                    {activeStory.emoji}
+                  </div>
+                )}
+                <p className="mt-3 rounded-xl bg-[#f7f1e7] px-3 py-1.5 text-center text-xs text-[#8b6a3d]">
+                  {activeStory.testament === "OT" ? "📜 Old Testament" : "✝️ New Testament"} · {activeStory.book}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-[#2b241d]">
-                  {activeStory.verse}
+                <p className="mt-2 text-center text-xs text-[#7a6b5a]">
+                  Read together, then say a short prayer. 🙏
                 </p>
               </div>
-              <div className="mt-4 rounded-2xl border border-[#e7dfd3] bg-white px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                  Activity
-                </p>
-                <p className="mt-2 text-sm text-[#5a534b]">
-                  {activeStory.activity}
-                </p>
-              </div>
-            </div>
-            <div className="rounded-[28px] bg-white/90 p-6 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
-              <img
-                src={activeStory.image}
-                alt={`${activeStory.title} illustration`}
-                className="h-56 w-full rounded-2xl bg-white object-contain p-4"
-              />
-              <p className="mt-4 text-xs text-[#7a6b5a]">
-                Tip: Read the story together, then pray and thank God for His
-                love.
-              </p>
-            </div>
-          </section>
 
-          <section className="rounded-[32px] bg-white/85 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
-                Kids Bible passage
-              </p>
-              <label className="text-xs uppercase tracking-[0.2em] text-[#8b6a3d]">
-                Translation
-                <select
-                  value={translation}
-                  onChange={(event) => setTranslation(event.target.value)}
-                  className="ml-2 rounded-full border border-[#e1d6c6] bg-white px-3 py-1 text-xs font-semibold text-[#2b241d] outline-none"
-                >
-                  <option value="bbe">Bible in Basic English</option>
-                  <option value="web">World English Bible</option>
-                  <option value="kjv">King James Version</option>
-                  <option value="asv">American Standard Version</option>
-                </select>
-              </label>
-            </div>
-            <div className="mt-4 rounded-[22px] border border-[#e7dfd3] bg-white px-4 py-4 text-sm text-[#5a534b]">
-              {status === "loading" && <p>Loading passage...</p>}
-              {status === "error" && <p>{errorMessage}</p>}
-              {status === "idle" && verses.length > 0 && (
-                <div className="grid gap-3">
-                  {verses.map((item) => (
-                    <p key={item.verse}>
-                      <span className="mr-2 font-semibold text-[#8b6a3d]">
-                        {item.verse}
-                      </span>
-                      {item.text}
-                    </p>
+              {/* Story info */}
+              <div className="flex flex-col gap-4 rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(62,54,41,0.10)]">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">Today's story</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-[#2f3b52]">
+                    {activeStory.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-[#5a534b]">
+                    {activeStory.summary}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-[#2f3b52] px-5 py-4 text-white">
+                  <p className="text-[10px] uppercase tracking-[0.35em] text-[#a8bbd4]">Memory verse</p>
+                  <p className="mt-2 text-base font-semibold leading-snug">{activeStory.verse}</p>
+                </div>
+                <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.35em] text-[#8b6a3d]">Activity</p>
+                  <p className="mt-2 text-sm text-[#5a534b]">{activeStory.activity}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* All stories grid */}
+            <section className="rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(62,54,41,0.10)]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">All stories</p>
+                  <p className="mt-1 text-sm text-[#5a534b]">
+                    {filteredStories.length} stories — tap any one to read it!
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {(["all", "OT", "NT"] as Testament[]).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTestament(t)}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                        testament === t
+                          ? "bg-[#2f3b52] text-white"
+                          : "bg-[#f7f1e7] text-[#5a534b] hover:bg-[#ede4d5]"
+                      }`}
+                    >
+                      {t === "all" ? "All" : t === "OT" ? "📜 Old" : "✝️ New"}
+                    </button>
                   ))}
                 </div>
-              )}
-              {status === "idle" && passage && (
-                <p className="whitespace-pre-wrap">{passage}</p>
-              )}
-            </div>
-          </section>
+              </div>
+              <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+                {filteredStories.map((story) => (
+                  <a
+                    key={story.id}
+                    href={`/kids?story=${story.id}`}
+                    className={`group flex flex-col items-center rounded-2xl border p-3 text-center transition hover:-translate-y-0.5 hover:shadow-md ${
+                      activeStory.id === story.id
+                        ? "border-[#b4894f] bg-[#f7f1e7]"
+                        : "border-[#e7dfd3] bg-[#faf8f4] hover:border-[#b4894f]"
+                    }`}
+                  >
+                    {story.image ? (
+                      <img src={story.image} alt={story.title} className="h-12 w-12 object-contain" />
+                    ) : (
+                      <span className="text-3xl">{story.emoji}</span>
+                    )}
+                    <p className="mt-2 text-[10px] font-semibold leading-tight text-[#2b241d]">
+                      {story.title}
+                    </p>
+                    <p className="text-[9px] text-[#8b6a3d]">{story.book}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
 
-          <section className="rounded-[32px] bg-white/85 p-5 shadow-[0_20px_60px_rgba(62,54,41,0.12)]">
-            <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">
-              All stories
-            </p>
-            <p className="mt-1 text-sm text-[#5a534b]">
-              {stories.length} Bible stories — tap any one to read it!
-            </p>
-            <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {stories.map((story) => (
-                <a
-                  key={story.id}
-                  href={`/kids?story=${story.id}`}
-                  className={`rounded-[22px] bg-white/90 p-4 shadow-[0_16px_40px_rgba(62,54,41,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(62,54,41,0.18)] ${
-                    activeStory.id === story.id
-                      ? "ring-2 ring-[#b4894f]"
-                      : ""
-                  }`}
+        {/* ── QUIZ TAB ── */}
+        {activeTab === "quiz" && (
+          <section className="rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(62,54,41,0.10)]">
+            {quizDone ? (
+              <div className="flex flex-col items-center gap-5 py-8 text-center">
+                <div className="text-7xl">{score >= 10 ? "🏆" : score >= 7 ? "🌟" : score >= 5 ? "😊" : "📖"}</div>
+                <h2 className="text-3xl font-semibold text-[#2f3b52]">
+                  You got {score} out of {quizQuestions.length}!
+                </h2>
+                <p className="text-sm text-[#5a534b]">
+                  {score >= 10
+                    ? "Amazing! You really know your Bible! 🎉"
+                    : score >= 7
+                    ? "Great job! Keep reading your Bible every day!"
+                    : score >= 5
+                    ? "Good effort! Read a story and try again!"
+                    : "Keep reading Bible stories — you'll get better every time!"}
+                </p>
+                <button
+                  onClick={resetQuiz}
+                  className="rounded-full bg-[#2f3b52] px-6 py-3 font-semibold text-white transition hover:bg-[#3d4e6a]"
                 >
-                  <img
-                    src={story.image}
-                    alt={`${story.title} illustration`}
-                    className="h-20 w-full rounded-2xl bg-white object-contain p-2"
-                  />
-                  <p className="mt-2 text-xs font-semibold text-[#2b241d] leading-snug">
-                    {story.title}
+                  Play again! 🔄
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a3d]">Bible Quiz</p>
+                    <p className="mt-1 text-sm text-[#5a534b]">
+                      Question {quizIndex + 1} of {quizQuestions.length} · Score: {score} 🌟
+                    </p>
+                  </div>
+                  <div className="h-2 w-32 overflow-hidden rounded-full bg-[#f7f1e7]">
+                    <div
+                      className="h-full rounded-full bg-[#b4894f] transition-all"
+                      style={{ width: `${((quizIndex) / quizQuestions.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-[#2f3b52] px-6 py-5">
+                  <p className="text-lg font-semibold leading-snug text-white">
+                    🧠 {q.question}
                   </p>
-                </a>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {q.options.map((opt, i) => {
+                    const isSelected = selected === i;
+                    const isCorrect = i === q.answer;
+                    let cls =
+                      "rounded-2xl border-2 px-4 py-3 text-left text-sm font-medium transition cursor-pointer ";
+                    if (selected === null) {
+                      cls += "border-[#e7dfd3] bg-[#faf8f4] hover:border-[#b4894f] hover:bg-[#f7f1e7]";
+                    } else if (isCorrect) {
+                      cls += "border-green-400 bg-green-50 text-green-800";
+                    } else if (isSelected) {
+                      cls += "border-red-400 bg-red-50 text-red-800";
+                    } else {
+                      cls += "border-[#e7dfd3] bg-[#faf8f4] opacity-60";
+                    }
+                    return (
+                      <button key={i} onClick={() => handleAnswer(i)} className={cls}>
+                        {isSelected && isCorrect && "✅ "}
+                        {isSelected && !isCorrect && "❌ "}
+                        {!isSelected && selected !== null && isCorrect && "✅ "}
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selected !== null && (
+                  <div className="rounded-2xl border border-[#e7dfd3] bg-[#f7f1e7] px-5 py-4">
+                    <p className="text-sm font-semibold text-[#2f3b52]">
+                      {selected === q.answer ? "🎉 Correct!" : "Not quite!"}
+                    </p>
+                    <p className="mt-1 text-sm text-[#5a534b]">{q.fun}</p>
+                    <button
+                      onClick={nextQuestion}
+                      className="mt-3 rounded-full bg-[#2f3b52] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#3d4e6a]"
+                    >
+                      {quizIndex + 1 < quizQuestions.length ? "Next question →" : "See my score! 🏆"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── MEMORY VERSES TAB ── */}
+        {activeTab === "verses" && (
+          <section className="flex flex-col gap-5">
+            <div className="rounded-[28px] bg-[#2f3b52] px-6 py-5 text-white">
+              <p className="text-xs uppercase tracking-[0.35em] text-[#a8bbd4]">Memory Verse Challenge</p>
+              <p className="mt-2 text-base font-semibold">
+                Learn one verse a week! Say it out loud, write it down, and hide it in your heart. 💙
+              </p>
+            </div>
+            {verseThemes.map((theme) => (
+              <div key={theme.theme} className="rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(62,54,41,0.10)]">
+                <p className="flex items-center gap-2 text-lg font-semibold text-[#2f3b52]">
+                  <span>{theme.emoji}</span> {theme.theme}
+                </p>
+                <div className="mt-4 flex flex-col gap-3">
+                  {theme.verses.map((v) => (
+                    <div key={v.ref} className="rounded-2xl border border-[#e7dfd3] bg-[#faf8f4] px-5 py-4">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.35em]" style={{ color: theme.color }}>
+                        {v.ref}
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-[#2b241d]">{v.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* ── FUN ZONE TAB ── */}
+        {activeTab === "fun" && (
+          <section className="flex flex-col gap-5">
+            <div className="rounded-[28px] bg-[#f5c842] px-6 py-5">
+              <p className="text-xs uppercase tracking-[0.35em] text-[#8b6a00]">Fun Zone</p>
+              <p className="mt-1 text-xl font-semibold text-[#2b241d]">
+                Learn, play, and grow with God! 🎉
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {funActivities.map((act) => (
+                <div
+                  key={act.title}
+                  className="rounded-[22px] bg-white p-5 shadow-[0_16px_40px_rgba(62,54,41,0.10)]"
+                >
+                  <div className="text-4xl">{act.emoji}</div>
+                  <p className="mt-3 text-base font-semibold text-[#2f3b52]">{act.title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-[#5a534b]">{act.desc}</p>
+                </div>
               ))}
             </div>
+
+            {/* Bible Book Challenge */}
+            <div className="rounded-[28px] bg-[#2f3b52] p-6 text-white">
+              <p className="text-xs uppercase tracking-[0.35em] text-[#a8bbd4]">Bible Book Challenge</p>
+              <p className="mt-2 text-lg font-semibold">How many books are in the Bible?</p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
+                  <p className="text-3xl font-bold text-[#f5c842]">39</p>
+                  <p className="mt-1 text-xs text-[#a8bbd4]">Old Testament books</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
+                  <p className="text-3xl font-bold text-[#f5c842]">27</p>
+                  <p className="mt-1 text-xs text-[#a8bbd4]">New Testament books</p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-[#cbd7e7]">
+                That's <span className="font-bold text-[#f5c842]">66 books</span> total, written by about 40 different people over 1,500 years — but it all tells ONE amazing story about God's love for us! 📖
+              </p>
+            </div>
           </section>
-        </div>
+        )}
+
+        <footer className="text-center text-xs text-[#a8977e]">
+          Halo List · Kids Bible Corner · {stories.length} stories
+        </footer>
       </div>
     </div>
   );
