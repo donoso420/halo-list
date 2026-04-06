@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { KidsContent } from "@/components/KidsContent";
 
@@ -844,20 +845,18 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(156,112,66,0.5),_transparent_35%),linear-gradient(180deg,_#795433_0%,_#4c331d_100%)] px-3 py-4 text-[#2b1b0f] md:px-5 md:py-6">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1700px] flex-col gap-4">
-        <header className="flex flex-wrap items-start justify-between gap-4 px-2 text-[#f4e7d0]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(176,126,72,0.42),_transparent_32%),linear-gradient(180deg,_#7f5832_0%,_#5b3c22_100%)] px-3 py-4 text-[#2b1b0f] md:px-5 md:py-6">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1680px] flex-col gap-5">
+        <header className="flex flex-wrap items-end justify-between gap-4 px-1 text-[#f6ead6]">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.45em] text-[#dcc3a1]">
-              Halo List
+            <p className="text-[11px] uppercase tracking-[0.5em] text-[#e6ceb0]">
+              Bible reader
             </p>
-            <h1 className="font-display text-4xl leading-none md:text-5xl">
-              Open Bible Reader
+            <h1 className="font-display text-5xl leading-none tracking-[0.18em] md:text-7xl">
+              HALO LIST
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-[#f4e7d0]/80">
-              The whole screen now reads like a Bible spread, with room for
-              highlights, underlines, and margin notes that save in this
-              browser.
+            <p className="mt-2 max-w-xl text-sm text-[#f6ead6]/80">
+              Read, highlight, underline, and keep notes in one calm place.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -866,104 +865,95 @@ export default function Home() {
               onClick={() => setMainTab("reader")}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 mainTab === "reader"
-                  ? "border-[#f2dfbc] bg-[#f2dfbc] text-[#362112]"
-                  : "border-[#d6b892] bg-transparent text-[#f4e7d0] hover:border-[#f2dfbc]"
+                  ? "border-[#f3dfbd] bg-[#f3dfbd] text-[#362112]"
+                  : "border-[#dec09a] bg-transparent text-[#f6ead6] hover:border-[#f3dfbd]"
               }`}
             >
-              Bible Reader
+              Bible
             </button>
             <button
               type="button"
               onClick={() => setMainTab("kids")}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 mainTab === "kids"
-                  ? "border-[#f2dfbc] bg-[#f2dfbc] text-[#362112]"
-                  : "border-[#d6b892] bg-transparent text-[#f4e7d0] hover:border-[#f2dfbc]"
+                  ? "border-[#f3dfbd] bg-[#f3dfbd] text-[#362112]"
+                  : "border-[#dec09a] bg-transparent text-[#f6ead6] hover:border-[#f3dfbd]"
               }`}
             >
               Kids Corner
             </button>
-            <a
+            <Link
               href="/dashboard"
-              className="rounded-full border border-[#d6b892] px-4 py-2 text-sm font-semibold text-[#f4e7d0] transition hover:border-[#f2dfbc]"
+              className="rounded-full border border-[#dec09a] px-4 py-2 text-sm font-semibold text-[#f6ead6] transition hover:border-[#f3dfbd]"
             >
               Dashboard
-            </a>
+            </Link>
           </div>
         </header>
 
         {mainTab === "kids" ? (
-          <section className="relative flex-1 overflow-hidden rounded-[40px] border border-[#8d6841] bg-[#8d6841] p-3 shadow-[0_35px_90px_rgba(20,11,3,0.45)]">
-            <div className="absolute inset-x-1/2 top-3 bottom-3 hidden w-5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,_#5d3d23_0%,_#b78d5c_50%,_#5d3d23_100%)] shadow-[inset_0_0_18px_rgba(0,0,0,0.45)] lg:block" />
-            <div className="grid h-full gap-3 lg:grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)]">
-              <div className="rounded-[34px] border border-[#d8c29c] bg-[#efe2c6] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_12px_28px_rgba(62,35,10,0.18)]">
-                <div className="h-full overflow-y-auto pr-1">
-                  <KidsContent />
-                </div>
+          <section className="flex-1 rounded-[40px] border border-[#8d6841] bg-[#8d6841] p-3 shadow-[0_35px_90px_rgba(20,11,3,0.42)]">
+            <div className="rounded-[34px] border border-[#d8c29c] bg-[#f7efd8] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_12px_28px_rgba(62,35,10,0.18)]">
+              <div className="mb-6 rounded-[24px] border border-[#dbc8aa] bg-[#fbf7ee] px-5 py-4">
+                <p className="text-[11px] uppercase tracking-[0.34em] text-[#8a6339]">
+                  HALO LIST for kids
+                </p>
+                <p className="mt-2 text-sm text-[#6f5739]">
+                  Stories, activities, and kid-friendly passages live here.
+                </p>
               </div>
-              <div className="hidden lg:block" />
-              <div className="rounded-[34px] border border-[#d8c29c] bg-[#f7efd8] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_12px_28px_rgba(62,35,10,0.18)]">
-                <div className="flex h-full flex-col justify-between rounded-[26px] border border-[#dcc9aa] bg-[#fbf7ee] p-6">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.35em] text-[#8a6339]">
-                      Storybook mode
-                    </p>
-                    <h2 className="mt-3 font-display text-3xl text-[#2b1b0f]">
-                      A softer page for younger readers
-                    </h2>
-                    <p className="mt-4 max-w-lg text-sm leading-7 text-[#705d45]">
-                      Kids Corner stays separate, so the main Bible reader can
-                      feel like an open Bible while children still get their own
-                      friendly space.
-                    </p>
-                  </div>
-                  <div className="rounded-[24px] border border-[#d9c6a7] bg-[#efe3c7] p-5">
-                    <p className="text-sm font-semibold text-[#2b1b0f]">
-                      Switch back to Bible Reader whenever you want the full
-                      chapter experience with annotations.
-                    </p>
-                  </div>
-                </div>
+              <div className="overflow-y-auto pr-1">
+                <KidsContent />
               </div>
             </div>
           </section>
         ) : (
-          <section className="relative flex-1 overflow-hidden rounded-[40px] border border-[#8d6841] bg-[#8d6841] p-3 shadow-[0_35px_90px_rgba(20,11,3,0.45)]">
-            <div className="absolute inset-x-1/2 top-3 bottom-3 hidden w-5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,_#5d3d23_0%,_#b78d5c_50%,_#5d3d23_100%)] shadow-[inset_0_0_18px_rgba(0,0,0,0.45)] lg:block" />
-            <div className="grid h-full gap-3 lg:grid-cols-[minmax(360px,430px)_24px_minmax(0,1fr)]">
+          <section className="flex-1 rounded-[40px] border border-[#8d6841] bg-[#8d6841] p-3 shadow-[0_35px_90px_rgba(20,11,3,0.42)]">
+            <div className="grid h-full gap-4 xl:grid-cols-[380px_minmax(0,1fr)]">
               <aside className="min-h-0 rounded-[34px] border border-[#d8c29c] bg-[#efe2c6] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_12px_28px_rgba(62,35,10,0.18)]">
-                <div className="flex h-full flex-col gap-5">
-                  <div className="rounded-[26px] border border-[#d7c19a] bg-[#f7eed8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                    <p className="text-[11px] uppercase tracking-[0.34em] text-[#8a6339]">
-                      Bible at a glance
-                    </p>
-                    <h2 className="mt-2 font-display text-3xl text-[#2b1b0f]">
-                      Read on a real spread
-                    </h2>
-                    <p className="mt-3 text-sm leading-7 text-[#705d45]">
-                      Choose a chapter on the left, then read, listen, and add
-                      verse notes on the right page like margin notes in a study
-                      Bible.
-                    </p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                      <div className="rounded-[20px] border border-[#d9c6a7] bg-white/60 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6339]">
+                <div className="flex h-full flex-col gap-4">
+                  <section className="rounded-[26px] border border-[#d7c19a] bg-[#f7eed8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.34em] text-[#8a6339]">
+                          Library
+                        </p>
+                        <h2 className="mt-2 font-display text-3xl text-[#2b1b0f]">
+                          Read the Bible
+                        </h2>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleChapter(
+                            selectedChapter.book,
+                            selectedChapter.chapter
+                          )
+                        }
+                        className="rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
+                      >
+                        {chapterRead ? "Mark unread" : "Mark read"}
+                      </button>
+                    </div>
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      <div className="rounded-[18px] border border-[#d9c6a7] bg-white/70 px-3 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-[#8a6339]">
                           Complete
                         </p>
                         <p className="mt-1 text-2xl font-semibold text-[#2b1b0f]">
                           {chapterPercent}%
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-[#d9c6a7] bg-white/60 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6339]">
+                      <div className="rounded-[18px] border border-[#d9c6a7] bg-white/70 px-3 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-[#8a6339]">
                           Chapters
                         </p>
                         <p className="mt-1 text-2xl font-semibold text-[#2b1b0f]">
-                          {chapterStats.completed}/{chapterStats.total}
+                          {chapterStats.completed}
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-[#d9c6a7] bg-white/60 px-4 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6339]">
+                      <div className="rounded-[18px] border border-[#d9c6a7] bg-white/70 px-3 py-3">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-[#8a6339]">
                           Notes
                         </p>
                         <p className="mt-1 text-2xl font-semibold text-[#2b1b0f]">
@@ -971,174 +961,136 @@ export default function Home() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </section>
 
-                  <div className="grid gap-4 lg:grid-cols-1 xl:grid-cols-2">
-                    <section className="rounded-[26px] border border-[#d7c19a] bg-[#f7eed8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] uppercase tracking-[0.32em] text-[#8a6339]">
-                          Reading plan
-                        </p>
-                        <span className="text-xs font-semibold text-[#6f5739]">
-                          {unreadChapters.length} chapters left
-                        </span>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-[#2b1b0f]">
-                            Chapters per day
-                          </p>
-                          <p className="text-xs text-[#866f52]">
-                            Keep the pace steady.
-                          </p>
-                        </div>
+                  <section className="rounded-[26px] border border-[#d7c19a] bg-[#f7eed8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                    <div className="grid gap-4">
+                      <div>
+                        <label className="text-[11px] uppercase tracking-[0.24em] text-[#8a6339]">
+                          Translation
+                        </label>
                         <select
-                          value={planGoal}
-                          onChange={(event) =>
-                            setDailyGoal(Number(event.target.value))
-                          }
-                          className="rounded-full border border-[#d3bea0] bg-white px-3 py-2 text-sm font-semibold text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
+                          value={translation}
+                          onChange={(event) => setTranslation(event.target.value)}
+                          className="mt-2 w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 py-3 text-sm font-medium text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
                         >
-                          {[1, 2, 3, 4, 5, 6].map((value) => (
-                            <option key={value} value={value}>
-                              {value}
+                          {translations.map((option) => (
+                            <option
+                              key={option.id}
+                              value={option.id}
+                              disabled={option.disabled}
+                            >
+                              {option.label}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div className="mt-4 rounded-[22px] border border-[#ddc9aa] bg-white/65 p-4">
-                        <div className="h-2 rounded-full bg-[#e5d8bf]">
-                          <div
-                            className="h-2 rounded-full bg-[linear-gradient(90deg,_#7b5b39_0%,_#c89c56_100%)]"
-                            style={{ width: `${chapterPercent}%` }}
-                          />
-                        </div>
-                        {planChapters.length === 0 ? (
-                          <p className="mt-3 text-sm text-[#705d45]">
-                            Every chapter is marked complete.
-                          </p>
-                        ) : (
-                          <>
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {planChapters.map((item) => (
-                                <button
-                                  key={`${item.book}-${item.chapter}`}
-                                  type="button"
-                                  onClick={() =>
-                                    openChapter(item.book, item.chapter)
-                                  }
-                                  className="rounded-full border border-[#d3bea0] bg-white px-3 py-1.5 text-xs font-semibold text-[#2b1b0f] transition hover:border-[#8a6339]"
-                                >
-                                  {item.book} {item.chapter}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openChapter(
-                                    planChapters[0].book,
-                                    planChapters[0].chapter
-                                  )
-                                }
-                                className="rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
-                              >
-                                Open today&apos;s first chapter
-                              </button>
-                              <button
-                                type="button"
-                                onClick={markPlanRead}
-                                className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#2b1b0f] transition hover:border-[#8a6339]"
-                              >
-                                Mark plan read
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </section>
 
-                    <section className="rounded-[26px] border border-[#d7c19a] bg-[#f7eed8] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                      <p className="text-[11px] uppercase tracking-[0.32em] text-[#8a6339]">
-                        Reader settings
-                      </p>
-                      <div className="mt-4 grid gap-4">
+                      <div>
+                        <label className="text-[11px] uppercase tracking-[0.24em] text-[#8a6339]">
+                          Search books
+                        </label>
+                        <div className="mt-2 flex gap-2">
+                          <input
+                            value={bookQuery}
+                            onChange={(event) => setBookQuery(event.target.value)}
+                            placeholder="Genesis, John, Psalms..."
+                            className="h-11 w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 text-sm text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
+                          />
+                          {bookQuery ? (
+                            <button
+                              type="button"
+                              onClick={() => setBookQuery("")}
+                              className="rounded-[18px] border border-[#d3bea0] px-3 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f]"
+                            >
+                              Clear
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                         <div>
-                          <label className="text-xs uppercase tracking-[0.18em] text-[#8a6339]">
-                            Translation
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8a6339]">
+                            Reading plan
+                          </p>
+                          <p className="mt-1 text-sm text-[#6f5739]">
+                            {unreadChapters.length} chapters left
+                          </p>
+                        </div>
+                        <select
+                          value={planGoal}
+                          onChange={(event) => setDailyGoal(Number(event.target.value))}
+                          className="rounded-full border border-[#d3bea0] bg-white px-3 py-2 text-sm font-semibold text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
+                        >
+                          {[1, 2, 3, 4, 5, 6].map((value) => (
+                            <option key={value} value={value}>
+                              {value} / day
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {planChapters.length > 0 ? (
+                        <div className="rounded-[20px] border border-[#ddc9aa] bg-white/65 p-4">
+                          <div className="flex flex-wrap gap-2">
+                            {planChapters.map((item) => (
+                              <button
+                                key={`${item.book}-${item.chapter}`}
+                                type="button"
+                                onClick={() => openChapter(item.book, item.chapter)}
+                                className="rounded-full border border-[#d3bea0] bg-white px-3 py-1.5 text-xs font-semibold text-[#2b1b0f] transition hover:border-[#8a6339]"
+                              >
+                                {item.book} {item.chapter}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openChapter(
+                                  planChapters[0].book,
+                                  planChapters[0].chapter
+                                )
+                              }
+                              className="rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
+                            >
+                              Open today&apos;s chapter
+                            </button>
+                            <button
+                              type="button"
+                              onClick={markPlanRead}
+                              className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#2b1b0f] transition hover:border-[#8a6339]"
+                            >
+                              Mark plan read
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {ttsSupported && selectableVoices.length > 0 ? (
+                        <div>
+                          <label className="text-[11px] uppercase tracking-[0.24em] text-[#8a6339]">
+                            Voice
                           </label>
                           <select
-                            value={translation}
+                            value={selectedVoice}
                             onChange={(event) =>
-                              setTranslation(event.target.value)
+                              setSelectedVoice(event.target.value)
                             }
                             className="mt-2 w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 py-3 text-sm font-medium text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
                           >
-                            {translations.map((option) => (
-                              <option
-                                key={option.id}
-                                value={option.id}
-                                disabled={option.disabled}
-                              >
-                                {option.label}
+                            {selectableVoices.map((voice) => (
+                              <option key={voice.voiceURI} value={voice.voiceURI}>
+                                {voice.name}
                               </option>
                             ))}
                           </select>
-                          <p className="mt-2 text-xs leading-5 text-[#866f52]">
-                            ESV still requires the server API key if you choose
-                            it.
-                          </p>
                         </div>
-
-                        <div>
-                          <label className="text-xs uppercase tracking-[0.18em] text-[#8a6339]">
-                            Search books
-                          </label>
-                          <div className="mt-2 flex gap-2">
-                            <input
-                              value={bookQuery}
-                              onChange={(event) =>
-                                setBookQuery(event.target.value)
-                              }
-                              placeholder="Genesis, John, Psalms..."
-                              className="h-11 w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 text-sm text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
-                            />
-                            {bookQuery ? (
-                              <button
-                                type="button"
-                                onClick={() => setBookQuery("")}
-                                className="rounded-[18px] border border-[#d3bea0] px-3 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f]"
-                              >
-                                Clear
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        {ttsSupported && selectableVoices.length > 0 ? (
-                          <div>
-                            <label className="text-xs uppercase tracking-[0.18em] text-[#8a6339]">
-                              Voice
-                            </label>
-                            <select
-                              value={selectedVoice}
-                              onChange={(event) =>
-                                setSelectedVoice(event.target.value)
-                              }
-                              className="mt-2 w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 py-3 text-sm font-medium text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
-                            >
-                              {selectableVoices.map((voice) => (
-                                <option key={voice.voiceURI} value={voice.voiceURI}>
-                                  {voice.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : null}
-                      </div>
-                    </section>
-                  </div>
+                      ) : null}
+                    </div>
+                  </section>
 
                   <div className="min-h-0 flex-1 overflow-y-auto pr-1">
                     <div className="space-y-5">
@@ -1173,15 +1125,13 @@ export default function Home() {
                 </div>
               </aside>
 
-              <div className="hidden lg:block" />
-
               <section className="min-h-0 rounded-[34px] border border-[#d8c29c] bg-[#f7efd8] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),0_12px_28px_rgba(62,35,10,0.18)]">
-                <div className="flex h-full flex-col gap-5">
+                <div className="flex h-full flex-col gap-4">
                   <div className="rounded-[26px] border border-[#d7c19a] bg-[#fbf7ee] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.35em] text-[#8a6339]">
-                          Open chapter
+                          Current chapter
                         </p>
                         <h2 className="mt-2 font-display text-4xl text-[#2b1b0f]">
                           {selectedEntry?.reference ||
@@ -1198,361 +1148,339 @@ export default function Home() {
                               : ""}
                           </span>
                           <span className="rounded-full border border-[#d5c1a0] bg-[#f3e7cf] px-3 py-1">
-                            {chapterNotes.length} notes in this chapter
+                            {chapterNotes.length} notes
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            toggleChapter(
-                              selectedChapter.book,
-                              selectedChapter.chapter
-                            )
-                          }
-                          className="rounded-full bg-[#2f3b52] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#394865]"
-                        >
-                          {chapterRead ? "Mark unread" : "Mark read"}
-                        </button>
-                        {selectedEntry?.status === "success" &&
-                        selectedEntry.copyright ? (
-                          <span className="max-w-xs text-right text-[11px] leading-5 text-[#7f694f]">
-                            {selectedEntry.copyright}
-                          </span>
-                        ) : null}
-                      </div>
+                      {selectedEntry?.status === "success" &&
+                      selectedEntry.copyright ? (
+                        <span className="max-w-xs text-right text-[11px] leading-5 text-[#7f694f]">
+                          {selectedEntry.copyright}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+                  <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <div className="min-h-0 rounded-[28px] border border-[#d8c5a7] bg-[#fbf7ee] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                      <div className="flex h-full flex-col gap-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e1d0b2] pb-4">
-                          <div>
-                            <p className="text-[11px] uppercase tracking-[0.28em] text-[#8a6339]">
-                              Reading page
-                            </p>
-                            <p className="mt-1 text-sm text-[#6f5739]">
-                              Tap any verse to highlight it, underline it, or
-                              write a margin note.
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#e1d0b2] pb-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.28em] text-[#8a6339]">
+                            Reading page
+                          </p>
+                          <p className="mt-1 text-sm text-[#6f5739]">
+                            Select a verse to add highlights, underlines, or
+                            notes.
+                          </p>
+                        </div>
+                        {activeVerse ? (
+                          <span className="rounded-full border border-[#d5c1a0] bg-[#f3e7cf] px-3 py-1.5 text-xs font-semibold text-[#6f5739]">
+                            Verse {activeVerse.verse.verse}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="min-h-0 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+                        {selectedEntry?.status === "loading" || !selectedEntry ? (
+                          <div className="flex min-h-[420px] items-center justify-center rounded-[24px] border border-dashed border-[#dac7a8] bg-[#f8f1e0] px-6 text-center text-sm text-[#705d45]">
+                            Loading chapter text...
+                          </div>
+                        ) : null}
+
+                        {selectedEntry?.status === "error" ? (
+                          <div className="rounded-[24px] border border-[#d7bf9e] bg-[#f8f1e0] px-5 py-6 text-sm text-[#7b5b39]">
+                            {selectedEntry.error}
+                          </div>
+                        ) : null}
+
+                        {selectedEntry?.status === "success" && hasDisplayedVerses ? (
+                          <div className="space-y-2">
+                            {verseItems.map((item) => {
+                              const isActive = item.verseKey === activeVerseKey;
+                              const noteCount = item.annotation?.note?.trim()
+                                ? 1
+                                : 0;
+
+                              return (
+                                <button
+                                  key={item.verseKey}
+                                  type="button"
+                                  onClick={() => setActiveVerseKey(item.verseKey)}
+                                  className={`w-full rounded-[20px] border px-4 py-4 text-left transition ${
+                                    item.annotation?.highlighted
+                                      ? "border-[#d8be6f] bg-[#f5e8a7]"
+                                      : "border-transparent bg-transparent hover:border-[#e3d2b6] hover:bg-[#f6ecda]"
+                                  } ${isActive ? "ring-2 ring-[#7b5b39]" : ""}`}
+                                >
+                                  <div className="grid grid-cols-[34px_1fr] gap-4">
+                                    <span className="pt-1 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a6339]">
+                                      {item.verse.verse}
+                                    </span>
+                                    <div>
+                                      <p
+                                        className={`text-base leading-8 text-[#2b1b0f] ${
+                                          item.annotation?.underlined
+                                            ? "underline decoration-[#7b5b39] decoration-2 underline-offset-[6px]"
+                                            : ""
+                                        }`}
+                                      >
+                                        {item.verse.text}
+                                      </p>
+                                      {item.annotation?.highlighted ||
+                                      item.annotation?.underlined ||
+                                      noteCount > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.2em] text-[#7c613c]">
+                                          {item.annotation?.highlighted ? (
+                                            <span className="rounded-full bg-white/75 px-2.5 py-1">
+                                              highlighted
+                                            </span>
+                                          ) : null}
+                                          {item.annotation?.underlined ? (
+                                            <span className="rounded-full bg-white/75 px-2.5 py-1">
+                                              underlined
+                                            </span>
+                                          ) : null}
+                                          {noteCount > 0 ? (
+                                            <span className="rounded-full bg-white/75 px-2.5 py-1">
+                                              note saved
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        {selectedEntry?.status === "success" &&
+                        !hasDisplayedVerses &&
+                        hasSelectedText ? (
+                          <div className="rounded-[24px] border border-[#e1d0b2] bg-[#f8f1e0] px-6 py-5">
+                            <p className="whitespace-pre-line text-base leading-8 text-[#2b1b0f]">
+                              {selectedEntry.text}
                             </p>
                           </div>
-                          {activeVerse ? (
-                            <button
-                              type="button"
-                              onClick={() => setActiveVerseKey(activeVerse.verseKey)}
-                              className="rounded-full border border-[#d5c1a0] bg-[#f3e7cf] px-3 py-1.5 text-xs font-semibold text-[#6f5739]"
-                            >
-                              Verse {activeVerse.verse.verse} selected
-                            </button>
-                          ) : null}
-                        </div>
+                        ) : null}
 
-                        <div className="min-h-0 flex-1 overflow-y-auto pr-2">
-                          {selectedEntry?.status === "loading" || !selectedEntry ? (
-                            <div className="flex h-full min-h-[420px] items-center justify-center rounded-[24px] border border-dashed border-[#dac7a8] bg-[#f8f1e0] px-6 text-center text-sm text-[#705d45]">
-                              Loading chapter text...
-                            </div>
-                          ) : null}
-
-                          {selectedEntry?.status === "error" ? (
-                            <div className="rounded-[24px] border border-[#d7bf9e] bg-[#f8f1e0] px-5 py-6 text-sm text-[#7b5b39]">
-                              {selectedEntry.error}
-                            </div>
-                          ) : null}
-
-                          {selectedEntry?.status === "success" && hasDisplayedVerses ? (
-                            <div className="space-y-3">
-                              {verseItems.map((item) => {
-                                const isActive = item.verseKey === activeVerseKey;
-                                const noteCount = item.annotation?.note?.trim()
-                                  ? 1
-                                  : 0;
-
-                                return (
-                                  <button
-                                    key={item.verseKey}
-                                    type="button"
-                                    onClick={() => setActiveVerseKey(item.verseKey)}
-                                    className={`w-full rounded-[22px] border px-4 py-4 text-left transition ${
-                                      item.annotation?.highlighted
-                                        ? "border-[#d8be6f] bg-[#f5e8a7]"
-                                        : "border-transparent bg-transparent hover:border-[#e3d2b6] hover:bg-[#f5ecdb]"
-                                    } ${isActive ? "ring-2 ring-[#7b5b39]" : ""}`}
-                                  >
-                                    <div className="grid grid-cols-[32px_1fr] gap-4">
-                                      <span className="pt-1 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a6339]">
-                                        {item.verse.verse}
-                                      </span>
-                                      <div>
-                                        <p
-                                          className={`text-base leading-8 text-[#2b1b0f] ${
-                                            item.annotation?.underlined
-                                              ? "underline decoration-[#7b5b39] decoration-2 underline-offset-[6px]"
-                                              : ""
-                                          }`}
-                                        >
-                                          {item.verse.text}
-                                        </p>
-                                        {item.annotation?.highlighted ||
-                                        item.annotation?.underlined ||
-                                        noteCount > 0 ? (
-                                          <div className="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.2em] text-[#7c613c]">
-                                            {item.annotation?.highlighted ? (
-                                              <span className="rounded-full bg-white/70 px-2.5 py-1">
-                                                highlighted
-                                              </span>
-                                            ) : null}
-                                            {item.annotation?.underlined ? (
-                                              <span className="rounded-full bg-white/70 px-2.5 py-1">
-                                                underlined
-                                              </span>
-                                            ) : null}
-                                            {noteCount > 0 ? (
-                                              <span className="rounded-full bg-white/70 px-2.5 py-1">
-                                                note saved
-                                              </span>
-                                            ) : null}
-                                          </div>
-                                        ) : null}
-                                      </div>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-
-                          {selectedEntry?.status === "success" &&
-                          !hasDisplayedVerses &&
-                          hasSelectedText ? (
-                            <div className="rounded-[24px] border border-[#e1d0b2] bg-[#f8f1e0] px-6 py-5">
-                              <p className="whitespace-pre-line text-base leading-8 text-[#2b1b0f]">
-                                {selectedEntry.text}
-                              </p>
-                            </div>
-                          ) : null}
-
-                          {selectedEntry?.status === "success" &&
-                          !hasDisplayedVerses &&
-                          !hasSelectedText ? (
-                            <div className="rounded-[24px] border border-[#d7bf9e] bg-[#f8f1e0] px-5 py-6 text-sm text-[#7b5b39]">
-                              No text was returned for this chapter.
-                            </div>
-                          ) : null}
-                        </div>
+                        {selectedEntry?.status === "success" &&
+                        !hasDisplayedVerses &&
+                        !hasSelectedText ? (
+                          <div className="rounded-[24px] border border-[#d7bf9e] bg-[#f8f1e0] px-5 py-6 text-sm text-[#7b5b39]">
+                            No text was returned for this chapter.
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
-                    <aside className="rounded-[28px] border border-[#d8c5a7] bg-[#efe3c7] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                      <div className="space-y-5">
-                        <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
-                          <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
-                            Verse tools
-                          </p>
-                          {activeVerse ? (
-                            <>
-                              <p className="mt-3 text-sm font-semibold text-[#2b1b0f]">
-                                {selectedChapter.book} {selectedChapter.chapter}:
-                                {activeVerse.verse.verse}
-                              </p>
-                              <p className="mt-2 text-sm leading-6 text-[#705d45]">
-                                {activeVerse.verse.text}
-                              </p>
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  aria-pressed={Boolean(
-                                    activeVerse.annotation?.highlighted
-                                  )}
-                                  onClick={() =>
-                                    updateAnnotation(activeVerse.verseKey, (current) => ({
-                                      ...current,
-                                      highlighted: !current.highlighted,
-                                    }))
-                                  }
-                                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
-                                    activeVerse.annotation?.highlighted
-                                      ? "bg-[#d4b75b] text-[#2b1b0f]"
-                                      : "border border-[#d3bea0] bg-white text-[#6f5739] hover:border-[#8a6339]"
-                                  }`}
-                                >
-                                  Highlight
-                                </button>
-                                <button
-                                  type="button"
-                                  aria-pressed={Boolean(
-                                    activeVerse.annotation?.underlined
-                                  )}
-                                  onClick={() =>
-                                    updateAnnotation(activeVerse.verseKey, (current) => ({
-                                      ...current,
-                                      underlined: !current.underlined,
-                                    }))
-                                  }
-                                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
-                                    activeVerse.annotation?.underlined
-                                      ? "bg-[#cab29a] text-[#2b1b0f]"
-                                      : "border border-[#d3bea0] bg-white text-[#6f5739] hover:border-[#8a6339]"
-                                  }`}
-                                >
-                                  Underline
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateAnnotation(activeVerse.verseKey, () => ({}))
-                                  }
-                                  className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f]"
-                                >
-                                  Clear
-                                </button>
-                              </div>
-                              <div className="mt-4">
-                                <label className="text-[11px] uppercase tracking-[0.22em] text-[#8a6339]">
-                                  Margin note
-                                </label>
-                                <textarea
-                                  value={activeVerse.annotation?.note ?? ""}
-                                  onChange={(event) =>
-                                    updateAnnotation(activeVerse.verseKey, (current) => ({
-                                      ...current,
-                                      note: event.target.value,
-                                    }))
-                                  }
-                                  placeholder="Write a thought, prayer, or observation for this verse."
-                                  className="mt-2 min-h-[150px] w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 py-3 text-sm leading-6 text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
-                                />
-                                <p className="mt-2 text-xs text-[#866f52]">
-                                  Notes save automatically in this browser.
-                                </p>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="mt-3 text-sm leading-6 text-[#705d45]">
-                              Select a verse on the reading page to highlight,
-                              underline, or add a note.
+                    <aside className="space-y-4 rounded-[28px] border border-[#d8c5a7] bg-[#efe3c7] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                      <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
+                        <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
+                          Verse tools
+                        </p>
+                        {activeVerse ? (
+                          <>
+                            <p className="mt-3 text-sm font-semibold text-[#2b1b0f]">
+                              {selectedChapter.book} {selectedChapter.chapter}:
+                              {activeVerse.verse.verse}
                             </p>
-                          )}
-                        </section>
-
-                        <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
-                              Audio
+                            <p className="mt-2 text-sm leading-6 text-[#705d45]">
+                              {activeVerse.verse.text}
                             </p>
-                            {!ttsSupported ? (
-                              <span className="text-xs text-[#866f52]">
-                                Not supported
-                              </span>
-                            ) : null}
-                          </div>
-                          {!ttsSupported ? (
-                            <p className="mt-3 text-sm text-[#705d45]">
-                              Speech controls are not available in this browser.
-                            </p>
-                          ) : (
-                            <>
-                              <div className="mt-4 flex gap-2">
-                                {!isSpeaking ? (
-                                  <button
-                                    type="button"
-                                    onClick={startSpeech}
-                                    disabled={!canSpeak}
-                                    className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865] disabled:cursor-not-allowed disabled:opacity-60"
-                                  >
-                                    Play
-                                  </button>
-                                ) : isPaused ? (
-                                  <button
-                                    type="button"
-                                    onClick={resumeSpeech}
-                                    className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
-                                  >
-                                    Resume
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={pauseSpeech}
-                                    className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
-                                  >
-                                    Pause
-                                  </button>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                aria-pressed={Boolean(
+                                  activeVerse.annotation?.highlighted
                                 )}
-                                <button
-                                  type="button"
-                                  onClick={stopSpeech}
-                                  disabled={!isSpeaking && !isPaused}
-                                  className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f] disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Stop
-                                </button>
-                              </div>
-                              <div className="mt-4">
-                                <label className="text-[11px] uppercase tracking-[0.22em] text-[#8a6339]">
-                                  Speed
-                                </label>
-                                <div className="mt-2 flex items-center gap-3">
-                                  <input
-                                    type="range"
-                                    min="0.7"
-                                    max="1.4"
-                                    step="0.05"
-                                    value={speechRate}
-                                    onChange={(event) =>
-                                      setSpeechRate(Number(event.target.value))
-                                    }
-                                    className="w-full accent-[#8a6339]"
-                                  />
-                                  <span className="text-xs font-semibold text-[#6f5739]">
-                                    {speechRate.toFixed(2)}x
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </section>
-
-                        <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
-                              Chapter notes
-                            </p>
-                            <span className="text-xs font-semibold text-[#6f5739]">
-                              {chapterNotes.length}
-                            </span>
-                          </div>
-                          {chapterNotes.length === 0 ? (
-                            <p className="mt-3 text-sm leading-6 text-[#705d45]">
-                              No verse notes yet for this chapter.
-                            </p>
-                          ) : (
-                            <div className="mt-4 max-h-[280px] space-y-3 overflow-y-auto pr-1">
-                              {chapterNotes.map((note) => (
-                                <button
-                                  key={note.verseKey}
-                                  type="button"
-                                  onClick={() => setActiveVerseKey(note.verseKey)}
-                                  className={`w-full rounded-[18px] border px-3 py-3 text-left transition ${
-                                    activeVerseKey === note.verseKey
-                                      ? "border-[#8a6339] bg-[#f3e7cf]"
-                                      : "border-[#d8c5a7] bg-white hover:border-[#8a6339]"
-                                  }`}
-                                >
-                                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a6339]">
-                                    Verse {note.verse}
-                                  </p>
-                                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#2b1b0f]">
-                                    {note.note}
-                                  </p>
-                                </button>
-                              ))}
+                                onClick={() =>
+                                  updateAnnotation(activeVerse.verseKey, (current) => ({
+                                    ...current,
+                                    highlighted: !current.highlighted,
+                                  }))
+                                }
+                                className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                                  activeVerse.annotation?.highlighted
+                                    ? "bg-[#d4b75b] text-[#2b1b0f]"
+                                    : "border border-[#d3bea0] bg-white text-[#6f5739] hover:border-[#8a6339]"
+                                }`}
+                              >
+                                Highlight
+                              </button>
+                              <button
+                                type="button"
+                                aria-pressed={Boolean(
+                                  activeVerse.annotation?.underlined
+                                )}
+                                onClick={() =>
+                                  updateAnnotation(activeVerse.verseKey, (current) => ({
+                                    ...current,
+                                    underlined: !current.underlined,
+                                  }))
+                                }
+                                className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                                  activeVerse.annotation?.underlined
+                                    ? "bg-[#cab29a] text-[#2b1b0f]"
+                                    : "border border-[#d3bea0] bg-white text-[#6f5739] hover:border-[#8a6339]"
+                                }`}
+                              >
+                                Underline
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateAnnotation(activeVerse.verseKey, () => ({}))
+                                }
+                                className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f]"
+                              >
+                                Clear
+                              </button>
                             </div>
-                          )}
-                        </section>
-                      </div>
+                            <div className="mt-4">
+                              <label className="text-[11px] uppercase tracking-[0.22em] text-[#8a6339]">
+                                Margin note
+                              </label>
+                              <textarea
+                                value={activeVerse.annotation?.note ?? ""}
+                                onChange={(event) =>
+                                  updateAnnotation(activeVerse.verseKey, (current) => ({
+                                    ...current,
+                                    note: event.target.value,
+                                  }))
+                                }
+                                placeholder="Write a thought, prayer, or observation for this verse."
+                                className="mt-2 min-h-[150px] w-full rounded-[18px] border border-[#d3bea0] bg-white px-3 py-3 text-sm leading-6 text-[#2b1b0f] outline-none transition focus:border-[#8a6339]"
+                              />
+                              <p className="mt-2 text-xs text-[#866f52]">
+                                Notes save automatically in this browser.
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="mt-3 text-sm leading-6 text-[#705d45]">
+                            Select a verse on the reading page to highlight,
+                            underline, or add a note.
+                          </p>
+                        )}
+                      </section>
+
+                      <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
+                            Audio
+                          </p>
+                          {!ttsSupported ? (
+                            <span className="text-xs text-[#866f52]">
+                              Not supported
+                            </span>
+                          ) : null}
+                        </div>
+                        {!ttsSupported ? (
+                          <p className="mt-3 text-sm text-[#705d45]">
+                            Speech controls are not available in this browser.
+                          </p>
+                        ) : (
+                          <>
+                            <div className="mt-4 flex gap-2">
+                              {!isSpeaking ? (
+                                <button
+                                  type="button"
+                                  onClick={startSpeech}
+                                  disabled={!canSpeak}
+                                  className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Play
+                                </button>
+                              ) : isPaused ? (
+                                <button
+                                  type="button"
+                                  onClick={resumeSpeech}
+                                  className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
+                                >
+                                  Resume
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={pauseSpeech}
+                                  className="flex-1 rounded-full bg-[#2f3b52] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#394865]"
+                                >
+                                  Pause
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={stopSpeech}
+                                disabled={!isSpeaking && !isPaused}
+                                className="rounded-full border border-[#d3bea0] px-4 py-2 text-xs font-semibold text-[#6f5739] transition hover:border-[#8a6339] hover:text-[#2b1b0f] disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                Stop
+                              </button>
+                            </div>
+                            <div className="mt-4">
+                              <label className="text-[11px] uppercase tracking-[0.22em] text-[#8a6339]">
+                                Speed
+                              </label>
+                              <div className="mt-2 flex items-center gap-3">
+                                <input
+                                  type="range"
+                                  min="0.7"
+                                  max="1.4"
+                                  step="0.05"
+                                  value={speechRate}
+                                  onChange={(event) =>
+                                    setSpeechRate(Number(event.target.value))
+                                  }
+                                  className="w-full accent-[#8a6339]"
+                                />
+                                <span className="text-xs font-semibold text-[#6f5739]">
+                                  {speechRate.toFixed(2)}x
+                                </span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </section>
+
+                      <section className="rounded-[22px] border border-[#d7c19a] bg-[#fbf7ee] p-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] uppercase tracking-[0.3em] text-[#8a6339]">
+                            Chapter notes
+                          </p>
+                          <span className="text-xs font-semibold text-[#6f5739]">
+                            {chapterNotes.length}
+                          </span>
+                        </div>
+                        {chapterNotes.length === 0 ? (
+                          <p className="mt-3 text-sm leading-6 text-[#705d45]">
+                            No verse notes yet for this chapter.
+                          </p>
+                        ) : (
+                          <div className="mt-4 max-h-[240px] space-y-3 overflow-y-auto pr-1">
+                            {chapterNotes.map((note) => (
+                              <button
+                                key={note.verseKey}
+                                type="button"
+                                onClick={() => setActiveVerseKey(note.verseKey)}
+                                className={`w-full rounded-[18px] border px-3 py-3 text-left transition ${
+                                  activeVerseKey === note.verseKey
+                                    ? "border-[#8a6339] bg-[#f3e7cf]"
+                                    : "border-[#d8c5a7] bg-white hover:border-[#8a6339]"
+                                }`}
+                              >
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a6339]">
+                                  Verse {note.verse}
+                                </p>
+                                <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#2b1b0f]">
+                                  {note.note}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </section>
                     </aside>
                   </div>
                 </div>
